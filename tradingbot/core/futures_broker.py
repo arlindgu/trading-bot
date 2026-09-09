@@ -41,6 +41,7 @@ class FuturesPosition:
         tp_pct: float | None = None,
         sl_pct: float | None = None,
         strategy: str = "coinflip",
+        entry_fee: float = 0.0,
     ):
         self.lot_id = lot_id
         self.symbol = symbol
@@ -52,6 +53,10 @@ class FuturesPosition:
         self.margin = margin  # capital committed as collateral for this position
         self.tp_pct = tp_pct
         self.sl_pct = sl_pct
+        # Real fee (in margin_asset) charged when this lot opened -- netted
+        # against the closing fee into close_position's reported pnl, so
+        # "pnl" is the true round-trip result, not just the raw price move.
+        self.entry_fee = entry_fee
         # `strategy` is the tag prefix, not just cosmetic -- webapp/app.py's
         # `_coinflip_info` only renders the structured Side/Lev columns for
         # tags starting "coinflip:"; every other futures strategy falls
@@ -95,6 +100,21 @@ class FuturesBroker:
         self.last_marks: dict[str, float] = {}
         self._lot_counter = itertools.count(1)
 
+    def _fetch_fee(self, symbol: str, order: dict) -> float:
+        """Unlike spot, a futures create_order response never includes fee
+        info inline -- Binance charges it in the margin asset (confirmed
+        against the real demo account: ~0.04% taker on a USDT-margined
+        fill), a real cost against `self.cash`, not a side cost in a
+        different asset like spot's BNB fee often is. Requires one extra
+        call per fill; on failure, treat the fee as unknown (0.0) rather
+        than blocking the trade that already went through."""
+        try:
+            trades = self.exchange.fetch_my_trades(symbol, params={"orderId": order.get("id")})
+            return sum(float((t.get("fee") or {}).get("cost") or 0.0) for t in trades)
+        except Exception as exc:
+            print(f"[fee lookup failed] {symbol}: {exc}")
+            return 0.0
+
     def open_position(
         self,
         symbol: str,
@@ -127,13 +147,15 @@ class FuturesBroker:
 
         fill_price = float(order.get("average") or order.get("price") or price)
         filled_qty = float(order.get("filled") or qty)
+        entry_fee = self._fetch_fee(symbol, order)
 
         lot_id = f"{symbol.replace('/', '')}-{next(self._lot_counter)}"
         position = FuturesPosition(
-            lot_id, symbol, side, leverage, fill_price, filled_qty, str(timestamp), margin, tp_pct, sl_pct, strategy
+            lot_id, symbol, side, leverage, fill_price, filled_qty, str(timestamp), margin,
+            tp_pct, sl_pct, strategy, entry_fee,
         )
         self.positions[lot_id] = position
-        self.cash -= margin
+        self.cash -= margin + entry_fee
         self.trade_log.append(
             {
                 "lot_id": lot_id,
@@ -145,6 +167,8 @@ class FuturesBroker:
                 "tag": position.tag,
                 "reason": None,
                 "pnl": None,
+                "fee_cost": entry_fee,
+                "fee_currency": self.margin_asset,
             }
         )
         return lot_id
@@ -174,11 +198,17 @@ class FuturesBroker:
             return None
 
         if position.side == "long":
-            pnl = (fill_price - position.entry_price) * position.size
+            raw_pnl = (fill_price - position.entry_price) * position.size
         else:
-            pnl = (position.entry_price - fill_price) * position.size
+            raw_pnl = (position.entry_price - fill_price) * position.size
 
-        self.cash += position.margin + pnl
+        close_fee = self._fetch_fee(symbol, order)
+        # `pnl` (reported/displayed) nets BOTH fees for the true round-trip
+        # result. `cash` only gets close_fee subtracted here -- entry_fee
+        # already left cash back at open_position time, subtracting it
+        # again here would double-count it.
+        pnl = raw_pnl - position.entry_fee - close_fee
+        self.cash += position.margin + raw_pnl - close_fee
         del self.positions[lot_id]
         self.trade_log.append(
             {
@@ -191,6 +221,8 @@ class FuturesBroker:
                 "reason": reason,
                 "pnl": pnl,
                 "tag": position.tag,
+                "fee_cost": close_fee,
+                "fee_currency": self.margin_asset,
             }
         )
         return pnl

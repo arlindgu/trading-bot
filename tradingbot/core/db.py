@@ -28,6 +28,7 @@ class PositionRow(Base):
     entry_price = Column(Float, nullable=False)
     entry_time = Column(String, nullable=False)
     tag = Column(String, default="")
+    entry_fee = Column(Float, nullable=False, default=0.0)  # futures only -- see FuturesPosition.entry_fee
 
 
 class TradeRow(Base):
@@ -43,6 +44,8 @@ class TradeRow(Base):
     tag = Column(String, default="")
     reason = Column(String, nullable=True)
     pnl = Column(Float, nullable=True)
+    fee_cost = Column(Float, nullable=False, default=0.0)
+    fee_currency = Column(String, nullable=True)
 
 
 class CashBalanceRow(Base):
@@ -89,7 +92,26 @@ def get_session_factory(db_path: Path) -> sessionmaker:
     with engine.connect() as conn:
         conn.exec_driver_sql("PRAGMA journal_mode=WAL")
     Base.metadata.create_all(engine)
+    _migrate_add_columns(engine)
     return sessionmaker(bind=engine)
+
+
+def _migrate_add_columns(engine) -> None:
+    """create_all only creates tables that don't exist yet -- it never
+    alters an existing one, so a new Column added to a model above needs
+    an explicit ADD COLUMN here too, or every already-deployed database
+    just keeps missing it. Idempotent: checks PRAGMA table_info first."""
+    migrations = [
+        ("positions", "entry_fee", "FLOAT NOT NULL DEFAULT 0.0"),
+        ("trades", "fee_cost", "FLOAT NOT NULL DEFAULT 0.0"),
+        ("trades", "fee_currency", "VARCHAR"),
+    ]
+    with engine.connect() as conn:
+        for table, column, coltype in migrations:
+            existing = {row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")}
+            if column not in existing:
+                conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}")
+        conn.commit()
 
 
 def restore_positions(broker, session: Session, account: str) -> None:
@@ -141,7 +163,7 @@ def restore_futures_positions(broker, session: Session, account: str) -> None:
         margin = p.size * p.entry_price / int(leverage)
         broker.positions[p.lot_id] = FuturesPosition(
             p.lot_id, p.symbol, side, int(leverage), p.entry_price, p.size, p.entry_time, margin,
-            tp_pct, sl_pct, strategy_name,
+            tp_pct, sl_pct, strategy_name, entry_fee=p.entry_fee,
         )
 
     # Same reasoning as restore_positions: resume the lot counter above the
@@ -182,6 +204,7 @@ def save_broker(session: Session, account: str, broker: PaperBroker) -> None:
             PositionRow(
                 account=account, lot_id=p.lot_id, symbol=p.symbol, size=p.size,
                 entry_price=p.entry_price, entry_time=str(p.entry_time), tag=p.tag,
+                entry_fee=getattr(p, "entry_fee", 0.0),
             )
         )
 
@@ -192,6 +215,7 @@ def save_broker(session: Session, account: str, broker: PaperBroker) -> None:
                 account=account, lot_id=trade["lot_id"], symbol=trade["symbol"], side=trade["side"],
                 price=trade["price"], size=trade["size"], timestamp=trade["timestamp"], tag=trade.get("tag", ""),
                 reason=trade.get("reason"), pnl=trade.get("pnl"),
+                fee_cost=trade.get("fee_cost", 0.0), fee_currency=trade.get("fee_currency"),
             )
         )
     broker._db_persisted_trade_count = len(broker.trade_log)
@@ -240,6 +264,20 @@ def get_latest_snapshots(session: Session, accounts: list[str]) -> dict[str, dic
         )
     ).scalars().all()
     return {r.account: {"timestamp": r.timestamp, "equity": r.equity, "cash": r.cash} for r in rows}
+
+
+def get_total_fees(session: Session, account: str) -> dict[str, float]:
+    """Cumulative fees paid by this account, grouped by the currency they
+    were actually charged in -- spot pays in BNB more often than not
+    (Binance's fee discount), futures always in the margin asset, so
+    summing across currencies without grouping would produce a
+    meaningless number."""
+    rows = session.execute(
+        select(TradeRow.fee_currency, func.sum(TradeRow.fee_cost))
+        .where(TradeRow.account == account, TradeRow.fee_currency.is_not(None))
+        .group_by(TradeRow.fee_currency)
+    ).all()
+    return {currency: float(total or 0.0) for currency, total in rows if currency}
 
 
 def get_symbol_history(session: Session, account: str, symbol: str) -> list[dict]:

@@ -69,6 +69,20 @@ class ExchangeBroker(PaperBroker):
         balance = self.exchange.fetch_balance()
         return float(balance.get("free", {}).get(self.quote_currency, 0.0))
 
+    @staticmethod
+    def _extract_fee(order: dict) -> tuple[float, str | None]:
+        """Binance includes fee info directly in a spot market order's
+        response (unlike futures, which needs a separate fetch_my_trades
+        call) -- but the fee is very often charged in BNB, not the quote
+        currency, if the account holds any (a BNB discount on the standard
+        taker fee). `self.cash` only tracks `quote_currency`, so a
+        BNB-denominated fee is a real cost that happens entirely outside
+        our tracked budget -- still recorded on the trade for display, just
+        not subtracted from `cash` unless the currencies actually match
+        (e.g. BNB balance ran out and Binance fell back to the quote asset)."""
+        fee = order.get("fee") or (order.get("fees") or [None])[0] or {}
+        return float(fee.get("cost") or 0.0), fee.get("currency")
+
     def buy(self, symbol: str, price: float, size: float, timestamp, tag: str = "") -> str | None:
         try:
             size = float(self.exchange.amount_to_precision(symbol, size))
@@ -79,7 +93,10 @@ class ExchangeBroker(PaperBroker):
 
         fill_price = float(order.get("average") or order.get("price") or price)
         filled_size = float(order.get("filled") or size)
+        fee_cost, fee_currency = self._extract_fee(order)
         self.cash -= filled_size * fill_price
+        if fee_currency == self.quote_currency:
+            self.cash -= fee_cost
 
         lot_id = f"{symbol}-{next(self._lot_counter)}"
         self.positions[lot_id] = Position(lot_id, symbol, filled_size, fill_price, str(timestamp), tag)
@@ -92,6 +109,8 @@ class ExchangeBroker(PaperBroker):
                 "size": filled_size,
                 "timestamp": str(timestamp),
                 "tag": tag,
+                "fee_cost": fee_cost,
+                "fee_currency": fee_currency,
             }
         )
         return lot_id
@@ -111,9 +130,13 @@ class ExchangeBroker(PaperBroker):
         del self.positions[lot_id]
         fill_price = float(order.get("average") or order.get("price") or price)
         filled_size = float(order.get("filled") or position.size)
+        fee_cost, fee_currency = self._extract_fee(order)
         proceeds = filled_size * fill_price
         self.cash += proceeds
         pnl = proceeds - position.size * position.entry_price
+        if fee_currency == self.quote_currency:
+            self.cash -= fee_cost
+            pnl -= fee_cost
 
         self.trade_log.append(
             {
@@ -126,6 +149,8 @@ class ExchangeBroker(PaperBroker):
                 "reason": reason,
                 "pnl": pnl,
                 "tag": position.tag,
+                "fee_cost": fee_cost,
+                "fee_currency": fee_currency,
             }
         )
         return pnl

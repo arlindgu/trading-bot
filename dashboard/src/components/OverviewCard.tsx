@@ -3,6 +3,12 @@ import { FlashValue } from "@/components/FlashValue"
 import { formatPct, formatUsdt, pnlColorClass } from "@/lib/format"
 import type { StatusResponse } from "@/lib/api"
 
+function formatFees(fees: Record<string, number>): string {
+  const entries = Object.entries(fees).filter(([, cost]) => cost > 0)
+  if (entries.length === 0) return "–"
+  return entries.map(([currency, cost]) => `${cost.toFixed(currency === "BNB" ? 6 : 2)} ${currency}`).join(", ")
+}
+
 export function OverviewCard({ status }: { status: StatusResponse }) {
   return (
     <Card>
@@ -11,7 +17,7 @@ export function OverviewCard({ status }: { status: StatusResponse }) {
         <CardDescription>Shared cash pool across all coins</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-5">
           <div>
             <div className="text-sm text-muted-foreground">Wallet Balance</div>
             <FlashValue value={status.equity} className="font-mono text-sm font-semibold tabular-nums">
@@ -38,6 +44,10 @@ export function OverviewCard({ status }: { status: StatusResponse }) {
           <div>
             <div className="text-sm text-muted-foreground">Open Positions</div>
             <div className="font-mono text-sm font-semibold tabular-nums">{status.open_positions}</div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">Fees Paid</div>
+            <div className="font-mono text-sm font-semibold tabular-nums">{formatFees(status.fees)}</div>
           </div>
         </div>
       </CardContent>

@@ -252,6 +252,7 @@ def status():
             "total_pnl": total_pnl,
             "total_pnl_pct": (total_pnl / starting_cash * 100) if starting_cash else None,
             "open_positions": len(broker_positions),
+            "fees": db.get_total_fees(session, account),
             "last_updated": latest_snapshot["timestamp"] if latest_snapshot else None,
             "per_symbol": per_symbol,
         }

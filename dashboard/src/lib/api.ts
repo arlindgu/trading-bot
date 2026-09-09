@@ -16,6 +16,7 @@ export interface StatusResponse {
   total_pnl: number
   total_pnl_pct: number | null
   open_positions: number
+  fees: Record<string, number>
   last_updated: string | null
   per_symbol: Record<string, SymbolSummary>
 }
