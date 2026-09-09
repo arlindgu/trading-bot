@@ -97,8 +97,19 @@ def restore_positions(broker, session: Session, account: str) -> None:
     for p in positions:
         broker.positions[p.lot_id] = Position(p.lot_id, p.symbol, p.size, p.entry_price, p.entry_time, p.tag)
 
-    # Resume the lot counter above the highest id seen so far, same reasoning as PaperBroker.from_dict.
-    used = [int(lot_id.rsplit("-", 1)[-1]) for lot_id in broker.positions]
+    # Resume the lot counter above the highest id seen so far, same reasoning
+    # as PaperBroker.from_dict. Lot ids from a non-counter-based broker (e.g.
+    # FuturesBroker, whose lot id is just the symbol) don't end in a number --
+    # this function is also used read-only by the dashboard API to display
+    # any account regardless of which broker wrote it, so skip those instead
+    # of crashing; the counter is meaningless there anyway (nothing will
+    # write new lots through this particular broker instance).
+    used = []
+    for lot_id in broker.positions:
+        try:
+            used.append(int(lot_id.rsplit("-", 1)[-1]))
+        except ValueError:
+            continue
     broker._lot_counter = itertools.count(max(used, default=0) + 1)
 
     broker._db_persisted_trade_count = session.execute(
