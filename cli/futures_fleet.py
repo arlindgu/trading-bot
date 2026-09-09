@@ -31,6 +31,7 @@ from tradingbot.strategies.coinflip import CoinflipStrategy
 from tradingbot.strategies.ema_scalp import EmaScalpStrategy
 from tradingbot.strategies.momentum_scalp import MomentumScalpStrategy
 from tradingbot.strategies.panic_bot import PanicBotStrategy
+from tradingbot.strategies.raidboss import RaidBossFuturesStrategy
 from tradingbot.strategies.rsi_scalp import RsiScalpStrategy
 
 DB_PATH = STATE_DIR / "trading.db"
@@ -47,6 +48,7 @@ FUTURES_STRATEGIES = {
     "momentum_scalp": MomentumScalpStrategy,
     "adrenaline_junkie": AdrenalineJunkieStrategy,
     "panic_bot": PanicBotStrategy,
+    "raidboss": RaidBossFuturesStrategy,
 }
 
 

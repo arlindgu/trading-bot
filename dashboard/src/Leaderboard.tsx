@@ -35,8 +35,8 @@ export function Leaderboard() {
   const worst = ranked.length > 1 ? ranked[ranked.length - 1] : undefined
 
   return (
-    <div className="min-h-svh bg-background text-foreground">
-      <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">
+    <div className="min-h-svh overflow-x-hidden bg-background text-foreground">
+      <div className="mx-auto flex max-w-4xl min-w-0 flex-col gap-6 px-4 py-8">
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">Leaderboard</h1>
@@ -90,46 +90,48 @@ export function Leaderboard() {
         )}
 
         {ranked.length > 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10">#</TableHead>
-                <TableHead>Strategy</TableHead>
-                <TableHead>Budget</TableHead>
-                <TableHead className="text-right">Equity</TableHead>
-                <TableHead className="text-right">PnL</TableHead>
-                <TableHead className="text-right">PnL %</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ranked.map((row, i) => (
-                <TableRow
-                  key={row.id}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    window.location.href = accountHref(row)
-                  }}
-                >
-                  <TableCell className="font-mono text-xs text-muted-foreground tabular-nums">{i + 1}</TableCell>
-                  <TableCell className="text-sm font-medium">{strategyLabel(row.strategy)}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground tabular-nums">
-                    {formatUsdt(row.starting_cash)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-xs tabular-nums">{formatUsdt(row.equity)}</TableCell>
-                  <TableCell
-                    className={`text-right font-mono text-xs tabular-nums ${row.total_pnl != null ? pnlColorClass(row.total_pnl) : ""}`}
-                  >
-                    {formatUsdt(row.total_pnl, { signed: true })}
-                  </TableCell>
-                  <TableCell
-                    className={`text-right font-mono text-sm font-semibold tabular-nums ${row.total_pnl_pct != null ? pnlColorClass(row.total_pnl_pct) : ""}`}
-                  >
-                    {formatPct(row.total_pnl_pct)}
-                  </TableCell>
+          <div className="min-w-0 overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10">#</TableHead>
+                  <TableHead>Strategy</TableHead>
+                  <TableHead>Budget</TableHead>
+                  <TableHead className="text-right">Equity</TableHead>
+                  <TableHead className="text-right">PnL</TableHead>
+                  <TableHead className="text-right">PnL %</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {ranked.map((row, i) => (
+                  <TableRow
+                    key={row.id}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      window.location.href = accountHref(row)
+                    }}
+                  >
+                    <TableCell className="font-mono text-xs text-muted-foreground tabular-nums">{i + 1}</TableCell>
+                    <TableCell className="text-sm font-medium">{strategyLabel(row.strategy)}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground tabular-nums">
+                      {formatUsdt(row.starting_cash)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs tabular-nums">{formatUsdt(row.equity)}</TableCell>
+                    <TableCell
+                      className={`text-right font-mono text-xs tabular-nums ${row.total_pnl != null ? pnlColorClass(row.total_pnl) : ""}`}
+                    >
+                      {formatUsdt(row.total_pnl, { signed: true })}
+                    </TableCell>
+                    <TableCell
+                      className={`text-right font-mono text-sm font-semibold tabular-nums ${row.total_pnl_pct != null ? pnlColorClass(row.total_pnl_pct) : ""}`}
+                    >
+                      {formatPct(row.total_pnl_pct)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </div>

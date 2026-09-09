@@ -39,6 +39,7 @@ export const STRATEGIES: StrategyMeta[] = [
   { id: "zappelphilipp", label: "Zappelphilipp", description: "Can't sit still -- closes every 1-minute candle, then coinflips whether to reopen.", category: "joke", frequency: "high" },
   { id: "adrenaline_junkie", label: "Adrenaline-Junkie", description: "Flips side on literally every 1-minute candle at a random leverage, never sits still.", category: "joke", frequency: "high" },
   { id: "panic_bot", label: "Panic-Bot", description: "Opens a random direction, panics and flips the instant price ticks against it by any amount.", category: "joke", frequency: "high" },
+  { id: "raidboss_futures", label: "RAIDBOSS", description: "Rolls a random mood every candle -- nibble, yolo, double down, flip sides, rage quit, or do nothing. No plan, real leverage.", category: "joke", frequency: "high" },
 ]
 
 export const GROUPS: { key: Category; frequency: Frequency; label: string }[] = [

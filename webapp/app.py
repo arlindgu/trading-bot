@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, request, send_from_directory
 from sqlalchemy.orm import scoped_session
 
-from tradingbot.config import ROOT, STATE_DIR, load_yaml
+from tradingbot.config import ROOT, STATE_DIR, load_symbols, load_yaml
 from tradingbot.core import db
 from tradingbot.strategies.grid import GridStrategy
 
@@ -84,6 +84,7 @@ ACCOUNTS = {
     "candle_reversal_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "candle_reversal"},
     "adrenaline_junkie_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "adrenaline_junkie"},
     "panic_bot_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "panic_bot"},
+    "raidboss_futures_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "raidboss_futures"},
     "moon_phase_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "moon_phase"},
     "friday13_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "friday13"},
     "prime_number_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "prime_number"},
@@ -275,6 +276,54 @@ def symbol_history(symbol: str):
 def symbol_trades(symbol: str):
     session = Session()
     return jsonify(db.get_trades_for_symbol(session, _account(), symbol))
+
+
+@app.route("/api/coins")
+def coins():
+    """Every base asset traded across the fleet (e.g. "BTC", "ETH") --
+    derived from the same central symbols.yaml every strategy already
+    reads, so a new symbol shows up here automatically."""
+    symbols = load_symbols()
+    bases = sorted({s.split("/")[0] for s in symbols["usdt"]})
+    return jsonify(bases)
+
+
+@app.route("/api/coins/<base>/bots")
+def coin_bots(base: str):
+    """How every bot that trades this coin is currently doing on it --
+    the cross-bot view. Unlike /api/status (one account, every symbol),
+    this is one symbol (well, one base asset, since spot/futures and
+    USDT/USDC margined bots each use their own quote-suffixed symbol),
+    across every account."""
+    session = Session()
+    base = base.upper()
+    rows = []
+    for account_id, meta in ACCOUNTS.items():
+        for symbol in db.get_symbols(session, account_id):
+            if symbol.split("/")[0].upper() != base:
+                continue
+            history = db.get_symbol_history(session, account_id, symbol)
+            latest = history[-1] if history else None
+            open_positions = db.get_open_positions_for_symbol(session, account_id, symbol)
+            closed_trades = sum(1 for t in db.get_trades_for_symbol(session, account_id, symbol) if t["side"] == "sell")
+            realized = latest["realized_pnl"] if latest else 0.0
+            unrealized = latest["unrealized_pnl"] if latest else 0.0
+            rows.append(
+                {
+                    "account": account_id,
+                    "label": meta["label"],
+                    "strategy": meta["strategy"],
+                    "symbol": symbol,
+                    "open_positions": len(open_positions),
+                    "closed_trades": closed_trades,
+                    "realized_pnl": realized,
+                    "unrealized_pnl": unrealized,
+                    "total_pnl": realized + unrealized,
+                    "mark_price": latest["mark_price"] if latest else None,
+                }
+            )
+    rows.sort(key=lambda r: r["total_pnl"], reverse=True)
+    return jsonify(rows)
 
 
 @app.route("/api/symbols/<path:symbol>/positions")

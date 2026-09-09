@@ -82,6 +82,8 @@ export type StrategyId =
   | "candle_reversal"
   | "adrenaline_junkie"
   | "panic_bot"
+  | "raidboss_futures"
+  | "raidboss_spot"
 
 export interface Account {
   id: string
@@ -97,6 +99,19 @@ export interface WalletBalance {
 }
 
 export type FuturesWalletBalance = WalletBalance
+
+export interface CoinBotRow {
+  account: string
+  label: string
+  strategy: StrategyId
+  symbol: string
+  open_positions: number
+  closed_trades: number
+  realized_pnl: number
+  unrealized_pnl: number
+  total_pnl: number
+  mark_price: number | null
+}
 
 export interface LeaderboardRow {
   id: string
@@ -145,4 +160,12 @@ export function fetchSymbolPositions(account: string, symbol: string): Promise<O
 
 export function fetchLeaderboard(): Promise<LeaderboardRow[]> {
   return getJson("/api/leaderboard")
+}
+
+export function fetchCoins(): Promise<string[]> {
+  return getJson("/api/coins")
+}
+
+export function fetchCoinBots(base: string): Promise<CoinBotRow[]> {
+  return getJson(`/api/coins/${encodeURIComponent(base)}/bots`)
 }

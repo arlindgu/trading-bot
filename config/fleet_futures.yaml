@@ -4,9 +4,10 @@
 # stays "chaotic" (higher/random leverage, joke strategies) -- matching the
 # flavor split this project already established for Coinflip itself.
 #
-# Budget check: USDT side = coinflip_usdt (500) + 4 new real scalps (2,000)
-# = 2,500 of 5,000. USDC side = coinflip_usdc (500) + 2 new joke scalps
-# (1,000) = 1,500 of 5,000. Both comfortably under the real balance.
+# Budget check: USDT side = coinflip_usdt (500) + 4 real scalps (2,000) =
+# 2,500 of 5,000. USDC side = coinflip_usdc (500) + 2 joke scalps (1,000)
+# + raidboss (500) = 2,000 of 5,000. Both comfortably under the real
+# balance.
 accounts:
   - account: coinflip_usdt_500
     margin_asset: USDT
@@ -65,3 +66,12 @@ accounts:
     total_cash: 500
     timeframe: 1m
     params: {margin_pct: 0.03, leverage: 5, panic_threshold: 0.001}
+
+  # RAIDBOSS -- does whatever it wants, no strategy at all. See
+  # tradingbot/strategies/raidboss.py for the mood table.
+  - account: raidboss_futures_500
+    margin_asset: USDC
+    strategy: raidboss
+    total_cash: 500
+    timeframe: 1m
+    params: {margin_pct: 0.03, max_concurrent: 5}

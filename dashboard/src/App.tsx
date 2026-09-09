@@ -28,6 +28,14 @@ import { usePolling } from "@/lib/usePolling"
 
 const POLL_MS = 30_000
 
+type CoinSortKey = "symbol" | "pnl_desc" | "pnl_asc"
+
+const COIN_SORT_OPTIONS: { key: CoinSortKey; label: string }[] = [
+  { key: "symbol", label: "Coin (A-Z)" },
+  { key: "pnl_desc", label: "Best performing first" },
+  { key: "pnl_asc", label: "Worst performing first" },
+]
+
 function initialParams(): { strategy: StrategyId | null; account: string | null } {
   const params = new URLSearchParams(window.location.search)
   const strategy = params.get("strategy")
@@ -52,6 +60,8 @@ export function App() {
     () => (accounts ?? []).filter((a) => a.strategy === strategy),
     [accounts, strategy]
   )
+
+  const [coinSort, setCoinSort] = useState<CoinSortKey>("symbol")
 
   const [account, setAccount] = useState<string | null>(initial.account)
   useEffect(() => {
@@ -98,6 +108,9 @@ export function App() {
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" size="sm" render={<a href="/leaderboard" />}>
               Leaderboard
+            </Button>
+            <Button variant="outline" size="sm" render={<a href="/coins" />}>
+              Coins
             </Button>
 
             <Select value={strategy} onValueChange={(value) => value && setStrategy(value as StrategyId)}>
@@ -161,13 +174,37 @@ export function App() {
         {status && <OverviewCard status={status} />}
 
         {status && account && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {Object.entries(status.per_symbol)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([symbol, summary]) => (
-                <CoinCard key={`${account}-${symbol}`} account={account} symbol={symbol} summary={summary} pollMs={POLL_MS} />
-              ))}
-          </div>
+          <>
+            <div className="flex items-center justify-end gap-2">
+              <span className="text-sm text-muted-foreground">Sort coins by</span>
+              <Select value={coinSort} onValueChange={(value) => value && setCoinSort(value as CoinSortKey)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue>{(value: CoinSortKey) => COIN_SORT_OPTIONS.find((o) => o.key === value)?.label ?? value}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {COIN_SORT_OPTIONS.map((o) => (
+                      <SelectItem key={o.key} value={o.key}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {Object.entries(status.per_symbol)
+                .sort(([symbolA, a], [symbolB, b]) => {
+                  if (coinSort === "pnl_desc") return b.total_pnl - a.total_pnl
+                  if (coinSort === "pnl_asc") return a.total_pnl - b.total_pnl
+                  return symbolA.localeCompare(symbolB)
+                })
+                .map(([symbol, summary]) => (
+                  <CoinCard key={`${account}-${symbol}`} account={account} symbol={symbol} summary={summary} pollMs={POLL_MS} />
+                ))}
+            </div>
+          </>
         )}
       </div>
     </div>
