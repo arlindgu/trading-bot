@@ -1,0 +1,26 @@
+# Grid trading auf XRP/USDT (Binance, oeffentliche Daten, kein Live-Handel).
+strategy: grid
+symbol: XRP/USDT
+exchange: binance
+timeframe: 1h
+lookback_days: 180
+
+# Preisspanne, die das Grid abdeckt. num_grids teilt sie in so viele
+# Kauf/Verkauf-Slots. XRP schwankte in den letzten 180 Tagen zwischen ca.
+# 0.99 und 1.66 (aktuell ~1.42) -- Range deckt das mit etwas Puffer ab.
+lower_price: 1.00
+upper_price: 1.70
+num_grids: 20 # step size ~1.8%, deutlich ueber der Fee+Slippage-Kostenschwelle (~0.3%)
+geometric: true  # geometrische Abstaende = gleiche %-Schritte
+
+# Kapital je Grid-Slot: entweder fester Betrag (investment_per_grid) ODER
+# als Anteil des Startkapitals (risk_pct_per_grid) -- nicht beides.
+# risk_pct_per_grid ist die Grid-Entsprechung zur "X% pro Trade riskieren"-Regel:
+# begrenzt, wie viel Kapital in einem einzelnen Slot gebunden werden kann,
+# falls er lange nicht schliesst. Ohne Stop-Loss ist es kein "Verlustrisiko"
+# im klassischen Sinn, sondern eine Exposure-Grenze pro Level.
+risk_pct_per_grid: 0.05  # 0.5% von initial_cash pro Slot
+fee_pct: 0.001              # 0.1% Taker-Fee, realistisch fuer Binance Spot
+slippage_pct: 0.0005
+
+initial_cash: 400  # erforderlich, wenn risk_pct_per_grid statt investment_per_grid genutzt wird

@@ -1,0 +1,10 @@
+ccxt
+pandas
+pyarrow
+pyyaml
+pytest
+sqlalchemy
+flask
+gunicorn
+python-dotenv
+websockets

@@ -1,0 +1,17 @@
+# Grid trading auf SOL/USDT (Binance, oeffentliche Daten, kein Live-Handel).
+strategy: grid
+symbol: SOL/USDT
+exchange: binance
+timeframe: 1h
+lookback_days: 3500
+
+lower_price: 1.10
+upper_price: 290.00
+num_grids: 20   # Sweep-Sweetspot fuer das 8-Coin-Portfolio (geteilter 500 USDT Cash-Pool)
+geometric: true
+
+risk_pct_per_grid: 0.01  # Sweep-Sweetspot: Calmar 0.669, +20.69% Return, -30.93% Drawdown (Portfolio)
+fee_pct: 0.001
+slippage_pct: 0.0005
+
+initial_cash: 500

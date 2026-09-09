@@ -1,0 +1,27 @@
+# Grid trading auf BTC/USDT (Binance, oeffentliche Daten, kein Live-Handel).
+strategy: grid
+symbol: BTC/USDT
+exchange: binance
+timeframe: 1h
+lookback_days: 3500  # ~2017 bis heute -- volle verfuegbare Binance-Historie
+
+# Preisspanne, die das Grid abdeckt. num_grids teilt sie in so viele
+# Kauf/Verkauf-Slots. Passe lower/upper an den erwarteten Seitwaertsbereich an.
+lower_price: 45000
+upper_price: 75000
+num_grids: 30  # step size ~0.30%, right at the round-trip fee+slippage breakeven point
+geometric: true  # geometrische Abstaende = gleiche %-Schritte, besser fuer breite Crypto-Ranges
+
+# Kapital je Grid-Slot: entweder fester Betrag (investment_per_grid) ODER
+# als Anteil des Startkapitals (risk_pct_per_grid) -- nicht beides.
+# risk_pct_per_grid ist die Grid-Entsprechung zur "X% pro Trade riskieren"-Regel:
+# begrenzt, wie viel Kapital in einem einzelnen Slot gebunden werden kann,
+# falls er lange nicht schliesst. Ohne Stop-Loss ist es kein "Verlustrisiko"
+# im klassischen Sinn, sondern eine Exposure-Grenze pro Level.
+risk_pct_per_grid: 0.05  # Calmar-Optimum aus dem Sweep (2661% Return / -84% Drawdown ueber 2017-heute) --
+                          # ACHTUNG: -84% Drawdown entspricht praktisch BTCs eigenem Baerenmarkt-Risiko,
+                          # bewusst gewaehlt trotz Warnung, kein konservativer Wert
+fee_pct: 0.001              # 0.1% Taker-Fee, realistisch fuer Binance Spot
+slippage_pct: 0.0005
+
+initial_cash: 100  # erforderlich, wenn risk_pct_per_grid statt investment_per_grid genutzt wird

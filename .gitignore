@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/*.parquet
+paper_state/*.json
+paper_state/*.db
+paper_state/*.db-shm
+paper_state/*.db-wal
+.env
+dashboard/node_modules/
+dashboard/dist/
+logs/

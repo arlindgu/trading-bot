@@ -1,0 +1,25 @@
+# Grid trading auf LINK/USDT (Binance, oeffentliche Daten, kein Live-Handel).
+strategy: grid
+symbol: LINK/USDT
+exchange: binance
+timeframe: 1h
+lookback_days: 3500  # volle verfuegbare Binance-Historie (seit 2019-01)
+
+# Preisspanne, die das Grid abdeckt. LINK schwankte in der gesamten Historie
+# zwischen ca. 0.36 und 52.27 (aktuell ~12.54) -- Range deckt das mit Puffer ab.
+lower_price: 0.35
+upper_price: 55.00
+num_grids: 20   # Sweep-Sweetspot fuer das 8-Coin-Portfolio (geteilter 500 USDT Cash-Pool)
+geometric: true  # geometrische Abstaende = gleiche %-Schritte, besser fuer breite Crypto-Ranges
+
+# Kapital je Grid-Slot: entweder fester Betrag (investment_per_grid) ODER
+# als Anteil des Startkapitals (risk_pct_per_grid) -- nicht beides.
+# risk_pct_per_grid wird bei jedem Kauf aus dem AKTUELLEN Eigenkapital neu
+# berechnet -- realisierte Gewinne vergroessern zukuenftige Positionsgroessen
+# (Zinseszins). Sweep-Sweetspot (8-Coin-Portfolio): Calmar 0.669,
+# +20.69% Return, -30.93% Drawdown ueber die gemeinsame Historie seit WIF-Listing.
+risk_pct_per_grid: 0.01
+fee_pct: 0.001              # 0.1% Taker-Fee, realistisch fuer Binance Spot
+slippage_pct: 0.0005
+
+initial_cash: 500
