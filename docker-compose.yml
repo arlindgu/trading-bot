@@ -3,7 +3,7 @@ services:
     build: .
     command: >
       python -u cli/portfolio_paper_trade.py
-      --testnet --account alts8_testnet_500
+      --testnet --account alts8_testnet_500 --key-prefix BINANCE_TESTNET_API_500
       --total-cash 500 --risk-pct 0.03 --poll-seconds 300
       config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
@@ -17,7 +17,7 @@ services:
     build: .
     command: >
       python -u cli/portfolio_paper_trade.py
-      --testnet --account alts8_testnet_10k
+      --testnet --account alts8_testnet_10k --key-prefix BINANCE_TESTNET_API_10K
       --total-cash 10000 --risk-pct 0.01 --poll-seconds 300
       config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml

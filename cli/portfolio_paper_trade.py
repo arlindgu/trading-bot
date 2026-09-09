@@ -7,11 +7,12 @@ Usage:
         config/grid_link_usdt.yaml config/grid_tia_usdt.yaml ...     # loop, poll every 5 min
     ... --once   # single check-and-trade pass across all symbols
 
-    ... --testnet --account alts8_testnet   # REAL orders against Binance
-        Spot Testnet (fake funds, real order execution/API). Requires
-        BINANCE_TESTNET_API_KEY / BINANCE_TESTNET_API_SECRET in a .env file
-        (see .env.example). Never real money -- but a real exchange account,
-        so use a separate --account so its ledger doesn't mix with paper runs.
+    ... --testnet --account alts8_testnet --key-prefix BINANCE_TESTNET_API_500
+        # REAL orders against Binance Spot Testnet (fake funds, real order
+        # execution/API). Requires <prefix>_KEY / <prefix>_SECRET in a .env
+        # file (see .env.example; prefix defaults to BINANCE_TESTNET_API).
+        # Give each parallel testnet bot its own key/testnet account (via
+        # --key-prefix) so they don't compete for the same real balance.
 
 --num-grids/--risk-pct/--geometric override every config's own value with
 one shared setting (e.g. a sweep's chosen combo) instead of editing each
@@ -85,10 +86,11 @@ def main() -> None:
 
     if testnet:
         load_dotenv()
-        api_key = os.environ.get("BINANCE_TESTNET_API_KEY")
-        api_secret = os.environ.get("BINANCE_TESTNET_API_SECRET")
+        key_prefix = parse_flag(argv, "--key-prefix") or "BINANCE_TESTNET_API"
+        api_key = os.environ.get(f"{key_prefix}_KEY")
+        api_secret = os.environ.get(f"{key_prefix}_SECRET")
         if not api_key or not api_secret:
-            print("Set BINANCE_TESTNET_API_KEY and BINANCE_TESTNET_API_SECRET in a .env file to use --testnet.")
+            print(f"Set {key_prefix}_KEY and {key_prefix}_SECRET in a .env file to use --testnet.")
             sys.exit(1)
         from tradingbot.core.exchange_broker import ExchangeBroker
         from tradingbot.core.db import CashBalanceRow
