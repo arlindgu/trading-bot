@@ -2,9 +2,8 @@ import itertools
 
 import pandas as pd
 
-from tradingbot.core.broker import PaperBroker
 from tradingbot.core.types import Bar
-from tradingbot.strategies.raidboss import RaidBossFuturesStrategy, RaidBossSpotStrategy
+from tradingbot.strategies.raidboss import RaidBossFuturesStrategy
 
 
 class _StubPosition:
@@ -43,19 +42,15 @@ class _FixedRng:
     randomness. `choice` calls (side, then leverage, ...) drain `choice_queue`
     in order, falling back to the first candidate once it's empty."""
 
-    def __init__(self, choices_queue=None, choice_queue=None, uniform_value=0.1):
+    def __init__(self, choices_queue=None, choice_queue=None):
         self.choices_queue = list(choices_queue or [])
         self.choice_queue = list(choice_queue or [])
-        self.uniform_value = uniform_value
 
     def choices(self, population, weights):
         return [self.choices_queue.pop(0)]
 
     def choice(self, seq):
         return self.choice_queue.pop(0) if self.choice_queue else seq[0]
-
-    def uniform(self, a, b):
-        return self.uniform_value
 
 
 def make_bar(hours_offset, close):
@@ -108,25 +103,3 @@ def test_futures_flip_closes_then_opens_opposite_side():
 
     assert broker.closes == ["raidboss_flip"]
     assert broker.opens[-1][1] == "short"
-
-
-def test_spot_hodl_does_not_buy():
-    rng = _FixedRng(choices_queue=["hodl"])
-    strategy = RaidBossSpotStrategy("BTC/USDT", rng=rng)
-    broker = PaperBroker(cash=1000.0, fee_pct=0.001, slippage_pct=0.0005)
-
-    strategy.on_bar(make_bar(0, 100.0), broker)
-
-    assert broker.positions == {}
-
-
-def test_spot_yolo_commits_a_large_chunk_of_equity():
-    rng = _FixedRng(choices_queue=["yolo"], uniform_value=0.5)
-    strategy = RaidBossSpotStrategy("BTC/USDT", rng=rng)
-    broker = PaperBroker(cash=1000.0, fee_pct=0.001, slippage_pct=0.0005)
-
-    strategy.on_bar(make_bar(0, 100.0), broker)
-
-    assert len(broker.positions) == 1
-    position = next(iter(broker.positions.values()))
-    assert position.size * 100.0 > 400.0  # roughly half of equity, not a nibble

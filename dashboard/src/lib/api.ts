@@ -83,7 +83,6 @@ export type StrategyId =
   | "adrenaline_junkie"
   | "panic_bot"
   | "raidboss_futures"
-  | "raidboss_spot"
 
 export interface Account {
   id: string
@@ -122,6 +121,10 @@ export interface LeaderboardRow {
   total_pnl: number | null
   total_pnl_pct: number | null
   last_updated: string | null
+  open_trades: number
+  closed_trades: number
+  won_trades: number
+  lost_trades: number
 }
 
 async function getJson<T>(url: string): Promise<T> {

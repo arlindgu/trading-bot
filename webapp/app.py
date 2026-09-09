@@ -135,12 +135,14 @@ def leaderboard():
     for ranking, not meant to be the authoritative per-account figure."""
     session = Session()
     latest = db.get_latest_snapshots(session, list(ACCOUNTS.keys()))
+    trade_stats = db.get_trade_stats(session, list(ACCOUNTS.keys()))
     rows = []
     for account_id, meta in ACCOUNTS.items():
         snapshot = latest.get(account_id)
         starting_cash = meta["starting_cash"]
         equity = snapshot["equity"] if snapshot else None
         total_pnl = (equity - starting_cash) if equity is not None else None
+        stats = trade_stats[account_id]
         rows.append(
             {
                 "id": account_id,
@@ -151,6 +153,10 @@ def leaderboard():
                 "total_pnl": total_pnl,
                 "total_pnl_pct": (total_pnl / starting_cash * 100) if total_pnl is not None and starting_cash else None,
                 "last_updated": snapshot["timestamp"] if snapshot else None,
+                "open_trades": stats["open"],
+                "closed_trades": stats["closed"],
+                "won_trades": stats["won"],
+                "lost_trades": stats["lost"],
             }
         )
     return jsonify(rows)

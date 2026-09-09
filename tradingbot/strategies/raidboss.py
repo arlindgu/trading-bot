@@ -6,72 +6,24 @@ unpredictable -- a genuine wildcard to compare every disciplined strategy
 against, not a rigged-to-lose joke (all moods are real position moves with
 real up/downside) and not a rigged-to-win one either.
 
-Two variants for the two account types this project supports: spot
-(RaidBossSpotStrategy, long/flat only via SingleLotStrategy) and futures
-(RaidBossFuturesStrategy, long/short/leverage via FuturesBroker directly --
-needs its own on_bar since "close everything then flip side" doesn't fit
-FuturesSingleLotStrategy's one-side-at-a-time contract).
+Futures only (long/short/leverage via FuturesBroker directly -- needs its
+own on_bar since "close everything then flip side" doesn't fit
+FuturesSingleLotStrategy's one-side-at-a-time contract). No spot variant:
+both spot budget pools sit at exactly 5,000/5,000 with zero buffer by
+design, and there's no existing tier the user wants shrunk to make room.
 """
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
 
-from tradingbot.core.broker import PaperBroker
 from tradingbot.core.futures_broker import FuturesBroker
 from tradingbot.core.types import Bar
 from tradingbot.strategies.base import Strategy
-from tradingbot.strategies.single_lot import SingleLotStrategy
 
 # (mood, weight) -- higher weight = rolled more often. Skewed toward the
 # tamer moods so it doesn't churn fees into dust every single candle, but
 # every mood is on the table every time.
-SPOT_MOODS = [("nibble", 5), ("yolo", 1), ("fomo", 2), ("panic_sell", 2), ("hodl", 4)]
 FUTURES_MOODS = [("nibble", 4), ("yolo", 1), ("double_down", 2), ("flip", 1), ("rage_quit", 2), ("hodl", 4)]
-
-
-@dataclass
-class RaidBossSpotConfig:
-    symbol: str
-    exchange: str
-    timeframe: str
-    fee_pct: float
-    slippage_pct: float
-    max_concurrent: int = 5
-    lookback_days: int = 90
-    initial_cash: float | None = None
-
-    @property
-    def starting_cash(self) -> float:
-        return self.initial_cash if self.initial_cash is not None else 1000.0
-
-
-class RaidBossSpotStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, max_concurrent: int = 5, rng: random.Random | None = None):
-        super().__init__(symbol, position_pct=0.0, max_concurrent=max_concurrent)
-        self.rng = rng or random.Random()
-
-    @classmethod
-    def from_config(cls, cfg: RaidBossSpotConfig) -> "RaidBossSpotStrategy":
-        return cls(cfg.symbol, cfg.max_concurrent)
-
-    def on_bar(self, bar: Bar, broker: PaperBroker) -> None:
-        if not self._is_new_bar(bar):
-            return
-
-        mood = self.rng.choices(*zip(*SPOT_MOODS))[0]
-        if mood == "hodl":
-            return
-        if mood == "panic_sell":
-            self._exit(bar, broker, reason="raidboss_panic_sell")
-            return
-        if mood == "nibble":
-            self.position_pct = self.rng.uniform(0.03, 0.10)
-        elif mood == "fomo":
-            self.position_pct = self.rng.uniform(0.15, 0.30)
-        elif mood == "yolo":
-            self.position_pct = self.rng.uniform(0.40, 0.70)
-        self._enter(bar, broker, tag=f"raidboss:{mood}")
 
 
 class RaidBossFuturesStrategy(Strategy):

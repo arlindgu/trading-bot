@@ -11,7 +11,7 @@ from __future__ import annotations
 import itertools
 from pathlib import Path
 
-from sqlalchemy import Column, Float, Integer, String, create_engine, delete, func, select
+from sqlalchemy import Column, Float, Integer, String, case, create_engine, delete, func, select
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from tradingbot.core.broker import PaperBroker, Position
@@ -264,6 +264,38 @@ def get_latest_snapshots(session: Session, accounts: list[str]) -> dict[str, dic
         )
     ).scalars().all()
     return {r.account: {"timestamp": r.timestamp, "equity": r.equity, "cash": r.cash} for r in rows}
+
+
+def get_trade_stats(session: Session, accounts: list[str]) -> dict[str, dict]:
+    """Open/closed/won/lost trade counts for every account in one pair of
+    bulk queries (not N) -- used by the leaderboard, which shows every
+    account at once. "Closed" is any trade row with a recorded pnl (an
+    exit); "won"/"lost" split those by pnl sign, a pnl of exactly 0.0 is
+    neither (a wash, not a win)."""
+    open_counts = dict(
+        session.execute(
+            select(PositionRow.account, func.count())
+            .where(PositionRow.account.in_(accounts))
+            .group_by(PositionRow.account)
+        ).all()
+    )
+    closed_rows = session.execute(
+        select(
+            TradeRow.account,
+            func.count().label("closed"),
+            func.sum(case((TradeRow.pnl > 0, 1), else_=0)).label("wins"),
+            func.sum(case((TradeRow.pnl < 0, 1), else_=0)).label("losses"),
+        )
+        .where(TradeRow.account.in_(accounts), TradeRow.pnl.is_not(None))
+        .group_by(TradeRow.account)
+    ).all()
+
+    stats = {account: {"open": open_counts.get(account, 0), "closed": 0, "won": 0, "lost": 0} for account in accounts}
+    for account, closed, wins, losses in closed_rows:
+        stats[account]["closed"] = closed
+        stats[account]["won"] = wins or 0
+        stats[account]["lost"] = losses or 0
+    return stats
 
 
 def get_total_fees(session: Session, account: str) -> dict[str, float]:

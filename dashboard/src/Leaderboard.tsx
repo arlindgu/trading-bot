@@ -16,6 +16,10 @@ function accountHref(row: LeaderboardRow): string {
   return `/?strategy=${encodeURIComponent(row.strategy)}&account=${encodeURIComponent(row.id)}`
 }
 
+function formatTrades(row: LeaderboardRow): string {
+  return `${row.open_trades} open / ${row.closed_trades} closed (${row.won_trades}W-${row.lost_trades}L)`
+}
+
 export function Leaderboard() {
   const { data: rows, error } = usePolling(fetchLeaderboard, POLL_MS)
 
@@ -97,6 +101,7 @@ export function Leaderboard() {
                   <TableHead className="w-10">#</TableHead>
                   <TableHead>Strategy</TableHead>
                   <TableHead>Budget</TableHead>
+                  <TableHead className="text-right">Trades</TableHead>
                   <TableHead className="text-right">Equity</TableHead>
                   <TableHead className="text-right">PnL</TableHead>
                   <TableHead className="text-right">PnL %</TableHead>
@@ -115,6 +120,9 @@ export function Leaderboard() {
                     <TableCell className="text-sm font-medium">{strategyLabel(row.strategy)}</TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground tabular-nums">
                       {formatUsdt(row.starting_cash)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs text-muted-foreground tabular-nums">
+                      {formatTrades(row)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs tabular-nums">{formatUsdt(row.equity)}</TableCell>
                     <TableCell

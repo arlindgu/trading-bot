@@ -16,7 +16,6 @@ from tradingbot.strategies.ma_crossover import MaCrossoverConfig, MaCrossoverStr
 from tradingbot.strategies.macd_momentum import MacdMomentumConfig, MacdMomentumStrategy
 from tradingbot.strategies.moon_phase import MoonPhaseConfig, MoonPhaseStrategy
 from tradingbot.strategies.prime_number import PrimeNumberConfig, PrimeNumberStrategy
-from tradingbot.strategies.raidboss import RaidBossSpotConfig, RaidBossSpotStrategy
 from tradingbot.strategies.relative_momentum import RelativeMomentumConfig, RelativeMomentumStrategy
 from tradingbot.strategies.rsi_reversion import RsiReversionConfig, RsiReversionStrategy
 from tradingbot.strategies.volume_spike import VolumeSpikeConfig, VolumeSpikeStrategy
@@ -46,7 +45,6 @@ STRATEGIES: dict[str, tuple[type, type[Strategy]]] = {
     "zodiac": (ZodiacConfig, ZodiacStrategy),
     "hash_sentiment": (HashSentimentConfig, HashSentimentStrategy),
     "zappelphilipp": (ZappelphilippConfig, ZappelphilippStrategy),
-    "raidboss_spot": (RaidBossSpotConfig, RaidBossSpotStrategy),
 }
 
 
