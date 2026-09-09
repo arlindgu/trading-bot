@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react"
 import { CoinCard } from "@/components/CoinCard"
 import { FlashValue } from "@/components/FlashValue"
 import { OverviewCard } from "@/components/OverviewCard"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -17,27 +16,27 @@ import { formatUsdt } from "@/lib/format"
 import { usePolling } from "@/lib/usePolling"
 
 const POLL_MS = 30_000
-const STRATEGIES: { id: StrategyId; label: string }[] = [
-  { id: "grid", label: "Grid" },
-  { id: "coinflip", label: "Coinflip" },
-  { id: "ma_crossover", label: "MA Crossover" },
-  { id: "donchian_breakout", label: "Donchian Breakout" },
-  { id: "rsi_reversion", label: "RSI Reversion" },
-  { id: "bollinger_reversion", label: "Bollinger Reversion" },
-  { id: "macd_momentum", label: "MACD Momentum" },
-  { id: "atr_breakout", label: "ATR Breakout" },
-  { id: "volume_spike", label: "Volume Spike" },
-  { id: "relative_momentum", label: "Relative Momentum" },
-  { id: "buy_and_hold", label: "Buy & Hold" },
-  { id: "moon_phase", label: "Vollmond-Trader" },
-  { id: "friday13", label: "Freitag-13-Trader" },
-  { id: "prime_number", label: "Primzahl-Trader" },
-  { id: "contrarian_self", label: "Contrarian-Self" },
-  { id: "fomo_bot", label: "FOMO-Bot" },
-  { id: "diamond_hands", label: "Diamond-Hands" },
-  { id: "buy_high_sell_low", label: "Buy-High-Sell-Low" },
-  { id: "zodiac", label: "Sternzeichen-Trader" },
-  { id: "hash_sentiment", label: "Hash-Sentiment-Bot" },
+const STRATEGIES: { id: StrategyId; label: string; description: string }[] = [
+  { id: "grid", label: "Grid", description: "Buys and sells a fixed price ladder, profiting from price oscillating inside the range." },
+  { id: "coinflip", label: "Coinflip", description: "Random side, leverage, and take-profit/stop-loss on real futures leverage. For laughs." },
+  { id: "ma_crossover", label: "MA Crossover", description: "Long while the fast EMA (9) is above the slow EMA (21), flat otherwise." },
+  { id: "donchian_breakout", label: "Donchian Breakout", description: "Long on a close above the prior 20-bar high, flat on a close below the prior low." },
+  { id: "rsi_reversion", label: "RSI Reversion", description: "Long when RSI drops below 30 (oversold), exits once it climbs back above 60." },
+  { id: "bollinger_reversion", label: "Bollinger Reversion", description: "Buys at or below the lower Bollinger band, exits once price reaches the middle band." },
+  { id: "macd_momentum", label: "MACD Momentum", description: "Long on a bullish MACD/signal-line crossover, flat on a bearish one." },
+  { id: "atr_breakout", label: "ATR Breakout", description: "Enters on a volatility breakout above the recent mean, rides it with an ATR trailing stop." },
+  { id: "volume_spike", label: "Volume Spike", description: "Long on a volume spike with a green candle, exits once volume normalizes." },
+  { id: "relative_momentum", label: "Relative Momentum", description: "Long when the recent return is positive and accelerating versus its own average." },
+  { id: "buy_and_hold", label: "Buy & Hold", description: "Buys and holds, no exit logic -- the passive benchmark the other strategies are measured against." },
+  { id: "moon_phase", label: "Vollmond-Trader", description: "Long during the days around a full moon (computed from the date), flat otherwise." },
+  { id: "friday13", label: "Freitag-13-Trader", description: "Closes out on every Friday the 13th out of superstition, holds normally otherwise." },
+  { id: "prime_number", label: "Primzahl-Trader", description: "Only holds a position on days whose day-of-month is a prime number." },
+  { id: "contrarian_self", label: "Contrarian-Self", description: "Holds for a fixed number of candles, then skips its next entry after a losing trade." },
+  { id: "fomo_bot", label: "FOMO-Bot", description: "Only buys after price has already pumped, chasing strength on purpose -- sells when it stalls." },
+  { id: "diamond_hands", label: "Diamond-Hands", description: "Buys every dip it sees and never voluntarily sells, no matter how far it drops." },
+  { id: "buy_high_sell_low", label: "Buy-High-Sell-Low", description: "Chases fresh highs and panic-sells on the next red candle -- deliberately bad timing." },
+  { id: "zodiac", label: "Sternzeichen-Trader", description: "Long or flat purely based on which zodiac sign the current date falls under." },
+  { id: "hash_sentiment", label: "Hash-Sentiment-Bot", description: "Pretends to read crowd sentiment, actually just hashes the candle's own OHLCV data." },
 ]
 
 export function App() {
@@ -46,6 +45,7 @@ export function App() {
   const { data: futuresWallet } = usePolling(fetchFuturesWalletBalance, 60_000)
 
   const [strategy, setStrategy] = useState<StrategyId>("grid")
+  const currentStrategy = useMemo(() => STRATEGIES.find((s) => s.id === strategy), [strategy])
   const accountsForStrategy = useMemo(
     () => (accounts ?? []).filter((a) => a.strategy === strategy),
     [accounts, strategy]
@@ -75,26 +75,25 @@ export function App() {
                 ? `Last updated: ${new Date(status.last_updated).toLocaleString()}`
                 : "Waiting for data..."}
             </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
             {wallet?.usdt != null && wallet?.usdc != null && (
-              <Badge variant="outline" className="gap-1.5 py-1.5">
-                Demo spot wallet
+              <p className="text-sm text-muted-foreground">
+                Demo spot wallet:{" "}
                 <FlashValue value={wallet.usdt + wallet.usdc} className="font-mono tabular-nums">
                   {formatUsdt(wallet.usdt + wallet.usdc)}
                 </FlashValue>
-              </Badge>
+              </p>
             )}
             {futuresWallet?.usdt != null && futuresWallet?.usdc != null && (
-              <Badge variant="outline" className="gap-1.5 py-1.5">
-                Demo futures wallet
+              <p className="text-sm text-muted-foreground">
+                Demo futures wallet:{" "}
                 <FlashValue value={futuresWallet.usdt + futuresWallet.usdc} className="font-mono tabular-nums">
                   {formatUsdt(futuresWallet.usdt + futuresWallet.usdc)}
                 </FlashValue>
-              </Badge>
+              </p>
             )}
+          </div>
 
+          <div className="flex flex-wrap items-center gap-3">
             <Select value={strategy} onValueChange={(value) => value && setStrategy(value as StrategyId)}>
               <SelectTrigger className="w-[120px]">
                 <SelectValue />
@@ -128,6 +127,10 @@ export function App() {
             )}
           </div>
         </header>
+
+        {currentStrategy && (
+          <div className="rounded-md border bg-muted/30 px-4 py-3 text-sm">{currentStrategy.description}</div>
+        )}
 
         {error && (
           <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
