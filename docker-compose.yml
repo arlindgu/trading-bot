@@ -4,7 +4,7 @@ services:
     command: >
       python -u cli/portfolio_paper_trade.py
       --testnet --account alts8_testnet
-      --total-cash 500 --risk-pct 0.03 --poll-seconds 300
+      --total-cash 10000 --risk-pct 0.01 --poll-seconds 300
       config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
       config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
