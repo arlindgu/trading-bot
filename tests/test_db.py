@@ -1,5 +1,12 @@
 from tradingbot.core.broker import PaperBroker, Position
-from tradingbot.core.db import get_session_factory, restore_futures_positions, restore_positions, save_broker
+from tradingbot.core.db import (
+    append_portfolio_snapshot,
+    get_latest_snapshots,
+    get_session_factory,
+    restore_futures_positions,
+    restore_positions,
+    save_broker,
+)
 from tradingbot.core.futures_broker import FuturesBroker
 
 
@@ -67,3 +74,16 @@ def test_restore_futures_positions_resumes_the_lot_counter_above_the_highest_see
     restore_futures_positions(reader, session, "test-account")
 
     assert next(reader._lot_counter) == 4
+
+
+def test_get_latest_snapshots_returns_only_the_newest_row_per_account(tmp_path):
+    session = get_session_factory(tmp_path / "test.db")()
+    append_portfolio_snapshot(session, "acc-a", "t0", equity=500.0, cash=500.0)
+    append_portfolio_snapshot(session, "acc-a", "t1", equity=510.0, cash=490.0)
+    append_portfolio_snapshot(session, "acc-b", "t0", equity=200.0, cash=200.0)
+
+    latest = get_latest_snapshots(session, ["acc-a", "acc-b", "acc-c"])
+
+    assert latest["acc-a"]["equity"] == 510.0
+    assert latest["acc-b"]["equity"] == 200.0
+    assert "acc-c" not in latest  # never had a snapshot

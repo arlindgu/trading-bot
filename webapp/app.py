@@ -125,6 +125,36 @@ def accounts():
     return jsonify([{"id": account_id, **meta} for account_id, meta in ACCOUNTS.items()])
 
 
+@app.route("/api/leaderboard")
+def leaderboard():
+    """Every account's current PnL % in one response, for the leaderboard
+    page -- ranked by db.get_latest_snapshots (one bulk query, not N).
+    total_pnl here is equity-based (equity - starting_cash), a close but not
+    byte-identical match to /api/status's per-symbol-summed total_pnl; fine
+    for ranking, not meant to be the authoritative per-account figure."""
+    session = Session()
+    latest = db.get_latest_snapshots(session, list(ACCOUNTS.keys()))
+    rows = []
+    for account_id, meta in ACCOUNTS.items():
+        snapshot = latest.get(account_id)
+        starting_cash = meta["starting_cash"]
+        equity = snapshot["equity"] if snapshot else None
+        total_pnl = (equity - starting_cash) if equity is not None else None
+        rows.append(
+            {
+                "id": account_id,
+                "label": meta["label"],
+                "strategy": meta["strategy"],
+                "equity": equity,
+                "starting_cash": starting_cash,
+                "total_pnl": total_pnl,
+                "total_pnl_pct": (total_pnl / starting_cash * 100) if total_pnl is not None and starting_cash else None,
+                "last_updated": snapshot["timestamp"] if snapshot else None,
+            }
+        )
+    return jsonify(rows)
+
+
 # One Binance Demo Trading account, two balance pools (spot, futures) --
 # both endpoints below read the same BINANCE_DEMO_KEY/_SECRET now. Cached so
 # the dashboard's ~30s polling (times however many people have it open)

@@ -223,6 +223,25 @@ def get_portfolio_history(session: Session, account: str) -> list[dict]:
     return [{"timestamp": r.timestamp, "equity": r.equity, "cash": r.cash} for r in rows]
 
 
+def get_latest_snapshots(session: Session, accounts: list[str]) -> dict[str, dict]:
+    """The latest {equity, cash, timestamp} per account, in one query --
+    for a leaderboard across every account, fetching each one's FULL
+    history (get_portfolio_history) just to keep the last row doesn't
+    scale once accounts have been running a while."""
+    latest_id_per_account = (
+        select(PortfolioSnapshotRow.account, func.max(PortfolioSnapshotRow.id).label("max_id"))
+        .where(PortfolioSnapshotRow.account.in_(accounts))
+        .group_by(PortfolioSnapshotRow.account)
+        .subquery()
+    )
+    rows = session.execute(
+        select(PortfolioSnapshotRow).join(
+            latest_id_per_account, PortfolioSnapshotRow.id == latest_id_per_account.c.max_id
+        )
+    ).scalars().all()
+    return {r.account: {"timestamp": r.timestamp, "equity": r.equity, "cash": r.cash} for r in rows}
+
+
 def get_symbol_history(session: Session, account: str, symbol: str) -> list[dict]:
     rows = session.execute(
         select(SymbolSnapshotRow)

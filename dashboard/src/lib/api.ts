@@ -97,6 +97,17 @@ export interface WalletBalance {
 
 export type FuturesWalletBalance = WalletBalance
 
+export interface LeaderboardRow {
+  id: string
+  label: string
+  strategy: StrategyId
+  equity: number | null
+  starting_cash: number
+  total_pnl: number | null
+  total_pnl_pct: number | null
+  last_updated: string | null
+}
+
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url)
   if (!res.ok) throw new Error(`${url} failed: ${res.status}`)
@@ -129,4 +140,8 @@ export function fetchSymbolTrades(account: string, symbol: string): Promise<Trad
 
 export function fetchSymbolPositions(account: string, symbol: string): Promise<OpenPosition[]> {
   return getJson(`/api/symbols/${symbol}/positions?account=${encodeURIComponent(account)}`)
+}
+
+export function fetchLeaderboard(): Promise<LeaderboardRow[]> {
+  return getJson("/api/leaderboard")
 }
