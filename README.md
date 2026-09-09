@@ -167,3 +167,11 @@ python cli/coinflip_trade.py --account coinflip_usdt_500 --total-cash 500 \
 market in that margin asset (DOT has no USDC perpetual) is skipped, not
 fatal. The dashboard's strategy dropdown (Grid / Coinflip) switches between
 them; each budget tier is its own account/ledger.
+
+`--total-cash` is a self-tracked budget cap, not segregated real funds --
+every bot in a margin group draws on the same demo wallet balance. Keep the
+sum of tiers within a margin group at or below that wallet's actual balance
+(`docker-compose.yml` stages 500/750/1,000/1,250/1,500 per group, summing to
+5,000 USDT and 5,000 USDC to match the demo account), or bots will start
+hitting real "insufficient balance" errors once several are in positions at
+once.

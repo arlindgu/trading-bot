@@ -60,11 +60,24 @@ services:
   # Trading, purely random entries/exits (see tradingbot/strategies/coinflip.py).
   # Two groups sharing the same demo account: USDT-margined with moderate
   # leverage (1-5x), USDC-margined with chaotic leverage (1-20x) -- DOT has
-  # no USDC perpetual, so those 5 bots trade the other 7 symbols.
+  # no USDC perpetual, so those 5 bots trade the other 7 symbols. Tiers are
+  # staggered but sum to <= the demo account's actual balance per margin
+  # asset (5,000 USDT / 5,000 USDC) -- each bot's --total-cash is only a
+  # self-tracked budget cap, not real segregated funds, so tiers that summed
+  # above the real balance (the old 500/1000/2000/4000/8000 = 15,500) would
+  # eventually hit real "insufficient balance" errors once enough bots were
+  # concurrently in positions.
   coinflip-usdt-500:
     <<: *bot-base
     command: >
       python -u cli/coinflip_trade.py --account coinflip_usdt_500 --total-cash 500
+      --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdt-750:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdt_750 --total-cash 750
       --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
@@ -75,24 +88,17 @@ services:
       --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
-  coinflip-usdt-2000:
+  coinflip-usdt-1250:
     <<: *bot-base
     command: >
-      python -u cli/coinflip_trade.py --account coinflip_usdt_2000 --total-cash 2000
+      python -u cli/coinflip_trade.py --account coinflip_usdt_1250 --total-cash 1250
       --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
-  coinflip-usdt-4000:
+  coinflip-usdt-1500:
     <<: *bot-base
     command: >
-      python -u cli/coinflip_trade.py --account coinflip_usdt_4000 --total-cash 4000
-      --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
-      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
-
-  coinflip-usdt-8000:
-    <<: *bot-base
-    command: >
-      python -u cli/coinflip_trade.py --account coinflip_usdt_8000 --total-cash 8000
+      python -u cli/coinflip_trade.py --account coinflip_usdt_1500 --total-cash 1500
       --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
@@ -103,6 +109,13 @@ services:
       --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
+  coinflip-usdc-750:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdc_750 --total-cash 750
+      --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
   coinflip-usdc-1000:
     <<: *bot-base
     command: >
@@ -110,24 +123,17 @@ services:
       --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
-  coinflip-usdc-2000:
+  coinflip-usdc-1250:
     <<: *bot-base
     command: >
-      python -u cli/coinflip_trade.py --account coinflip_usdc_2000 --total-cash 2000
+      python -u cli/coinflip_trade.py --account coinflip_usdc_1250 --total-cash 1250
       --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
-  coinflip-usdc-4000:
+  coinflip-usdc-1500:
     <<: *bot-base
     command: >
-      python -u cli/coinflip_trade.py --account coinflip_usdc_4000 --total-cash 4000
-      --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
-      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
-
-  coinflip-usdc-8000:
-    <<: *bot-base
-    command: >
-      python -u cli/coinflip_trade.py --account coinflip_usdc_8000 --total-cash 8000
+      python -u cli/coinflip_trade.py --account coinflip_usdc_1500 --total-cash 1500
       --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
       LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
@@ -147,12 +153,12 @@ services:
       - bot-4000
       - bot-8000
       - coinflip-usdt-500
+      - coinflip-usdt-750
       - coinflip-usdt-1000
-      - coinflip-usdt-2000
-      - coinflip-usdt-4000
-      - coinflip-usdt-8000
+      - coinflip-usdt-1250
+      - coinflip-usdt-1500
       - coinflip-usdc-500
+      - coinflip-usdc-750
       - coinflip-usdc-1000
-      - coinflip-usdc-2000
-      - coinflip-usdc-4000
-      - coinflip-usdc-8000
+      - coinflip-usdc-1250
+      - coinflip-usdc-1500

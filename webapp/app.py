@@ -60,15 +60,15 @@ ACCOUNTS = {
     "alts8_testnet_4000": {"label": "4,000 USDT", "starting_cash": 4000.0, "strategy": "grid"},
     "alts8_testnet_8000": {"label": "8,000 USDT", "starting_cash": 8000.0, "strategy": "grid"},
     "coinflip_usdt_500": {"label": "500 USDT (1-5x)", "starting_cash": 500.0, "strategy": "coinflip"},
+    "coinflip_usdt_750": {"label": "750 USDT (1-5x)", "starting_cash": 750.0, "strategy": "coinflip"},
     "coinflip_usdt_1000": {"label": "1,000 USDT (1-5x)", "starting_cash": 1000.0, "strategy": "coinflip"},
-    "coinflip_usdt_2000": {"label": "2,000 USDT (1-5x)", "starting_cash": 2000.0, "strategy": "coinflip"},
-    "coinflip_usdt_4000": {"label": "4,000 USDT (1-5x)", "starting_cash": 4000.0, "strategy": "coinflip"},
-    "coinflip_usdt_8000": {"label": "8,000 USDT (1-5x)", "starting_cash": 8000.0, "strategy": "coinflip"},
+    "coinflip_usdt_1250": {"label": "1,250 USDT (1-5x)", "starting_cash": 1250.0, "strategy": "coinflip"},
+    "coinflip_usdt_1500": {"label": "1,500 USDT (1-5x)", "starting_cash": 1500.0, "strategy": "coinflip"},
     "coinflip_usdc_500": {"label": "500 USDC (1-20x)", "starting_cash": 500.0, "strategy": "coinflip"},
+    "coinflip_usdc_750": {"label": "750 USDC (1-20x)", "starting_cash": 750.0, "strategy": "coinflip"},
     "coinflip_usdc_1000": {"label": "1,000 USDC (1-20x)", "starting_cash": 1000.0, "strategy": "coinflip"},
-    "coinflip_usdc_2000": {"label": "2,000 USDC (1-20x)", "starting_cash": 2000.0, "strategy": "coinflip"},
-    "coinflip_usdc_4000": {"label": "4,000 USDC (1-20x)", "starting_cash": 4000.0, "strategy": "coinflip"},
-    "coinflip_usdc_8000": {"label": "8,000 USDC (1-20x)", "starting_cash": 8000.0, "strategy": "coinflip"},
+    "coinflip_usdc_1250": {"label": "1,250 USDC (1-20x)", "starting_cash": 1250.0, "strategy": "coinflip"},
+    "coinflip_usdc_1500": {"label": "1,500 USDC (1-20x)", "starting_cash": 1500.0, "strategy": "coinflip"},
 }
 DEFAULT_ACCOUNT = "alts8_testnet_500"
 
