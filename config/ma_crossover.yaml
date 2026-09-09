@@ -5,4 +5,4 @@ fee_pct: 0.001
 slippage_pct: 0.0005
 fast_period: 9
 slow_period: 21
-position_pct: 0.12
+position_pct: [0.08, 0.16]

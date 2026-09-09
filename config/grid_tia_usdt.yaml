@@ -10,7 +10,7 @@ upper_price: 21.00
 num_grids: 20   # Sweep-Sweetspot fuer das 8-Coin-Portfolio (geteilter 500 USDT Cash-Pool)
 geometric: true
 
-risk_pct_per_grid: 0.01  # Sweep-Sweetspot: Calmar 0.669, +20.69% Return, -30.93% Drawdown (Portfolio)
+risk_pct_per_grid: [0.0075, 0.0125]  # Sweep-Sweetspot war 0.01 (Calmar 0.669, +20.69% Return, -30.93% Drawdown Portfolio) -- jetzt als Range, bei jedem Kauf neu ausgewuerfelt
 fee_pct: 0.001
 slippage_pct: 0.0005
 

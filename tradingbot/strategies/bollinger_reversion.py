@@ -19,7 +19,7 @@ class BollingerReversionConfig:
     slippage_pct: float
     period: int = 20
     num_std: float = 2.0
-    position_pct: float = 0.12
+    position_pct: float | list[float] = 0.12
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -29,7 +29,7 @@ class BollingerReversionConfig:
 
 
 class BollingerReversionStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, period: int = 20, num_std: float = 2.0, position_pct: float = 0.12):
+    def __init__(self, symbol: str, period: int = 20, num_std: float = 2.0, position_pct: float | list[float] = 0.12):
         super().__init__(symbol, position_pct)
         self.bands = BollingerBands(period, num_std)
 

@@ -14,14 +14,14 @@ accounts:
     strategy: coinflip
     total_cash: 500
     timeframe: 1h
-    params: {leverage_choices: [1, 2, 3, 5], margin_pct: 0.03, max_concurrent: 3}
+    params: {leverage_choices: [1, 2, 3, 5], margin_pct: [0.02, 0.045], max_concurrent: 3}
 
   - account: coinflip_usdc_500
     margin_asset: USDC
     strategy: coinflip
     total_cash: 500
     timeframe: 1h
-    params: {leverage_choices: [1, 2, 3, 5, 10, 20], margin_pct: 0.03, max_concurrent: 3}
+    params: {leverage_choices: [1, 2, 3, 5, 10, 20], margin_pct: [0.02, 0.06], max_concurrent: 3}
 
   # 3 new real (technical) high-frequency strategies -- USDT side, 1m bars.
   - account: rsi_scalp_500
@@ -29,28 +29,28 @@ accounts:
     strategy: rsi_scalp
     total_cash: 500
     timeframe: 1m
-    params: {margin_pct: 0.03, leverage: 3, period: 14, oversold: 20.0, overbought: 80.0}
+    params: {margin_pct: [0.02, 0.045], leverage: 3, period: 14, oversold: 20.0, overbought: 80.0}
 
   - account: ema_scalp_500
     margin_asset: USDT
     strategy: ema_scalp
     total_cash: 500
     timeframe: 1m
-    params: {margin_pct: 0.03, leverage: 3, fast_period: 5, slow_period: 13}
+    params: {margin_pct: [0.02, 0.045], leverage: 3, fast_period: 5, slow_period: 13}
 
   - account: momentum_scalp_500
     margin_asset: USDT
     strategy: momentum_scalp
     total_cash: 500
     timeframe: 1m
-    params: {margin_pct: 0.03, leverage: 3, lookback_bars: 5}
+    params: {margin_pct: [0.02, 0.045], leverage: 3, lookback_bars: 5}
 
   - account: candle_reversal_500
     margin_asset: USDT
     strategy: candle_reversal
     total_cash: 500
     timeframe: 1m
-    params: {margin_pct: 0.03, leverage: 3}
+    params: {margin_pct: [0.02, 0.045], leverage: 3}
 
   # 2 new joke high-frequency strategies -- USDC side, 1m bars.
   - account: adrenaline_junkie_500
@@ -58,20 +58,23 @@ accounts:
     strategy: adrenaline_junkie
     total_cash: 500
     timeframe: 1m
-    params: {margin_pct: 0.03, leverage_choices: [1, 2, 3, 5, 10]}
+    params: {margin_pct: [0.02, 0.06], leverage_choices: [1, 2, 3, 5, 10]}
 
   - account: panic_bot_500
     margin_asset: USDC
     strategy: panic_bot
     total_cash: 500
     timeframe: 1m
-    params: {margin_pct: 0.03, leverage: 5, panic_threshold: 0.001}
+    params: {margin_pct: [0.02, 0.06], leverage: 5, panic_threshold: 0.001}
 
   # RAIDBOSS -- does whatever it wants, no strategy at all. See
-  # tradingbot/strategies/raidboss.py for the mood table.
+  # tradingbot/strategies/raidboss.py for the mood table. margin_pct here is
+  # its own base risk before the per-mood multiplier (nibble x1, double_down
+  # x1, flip x2, yolo x3) -- kept narrower than the other USDC bots so a
+  # yolo roll (3x this range) doesn't blow past a sane margin.
   - account: raidboss_futures_500
     margin_asset: USDC
     strategy: raidboss
     total_cash: 500
     timeframe: 1m
-    params: {margin_pct: 0.03, max_concurrent: 5}
+    params: {margin_pct: [0.02, 0.035], max_concurrent: 5}

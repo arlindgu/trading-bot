@@ -15,7 +15,7 @@ from tradingbot.strategies.futures_single_lot import FuturesSingleLotStrategy
 
 class AdrenalineJunkieStrategy(FuturesSingleLotStrategy):
     def __init__(
-        self, symbol: str, margin_pct: float = 0.03, leverage_choices: list[int] | None = None,
+        self, symbol: str, margin_pct: float | list[float] = 0.03, leverage_choices: list[int] | None = None,
         rng: random.Random | None = None,
     ):
         super().__init__(symbol, margin_pct, leverage=1, name="adrenaline_junkie")

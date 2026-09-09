@@ -15,7 +15,7 @@ from tradingbot.strategies.futures_single_lot import FuturesSingleLotStrategy
 
 class PanicBotStrategy(FuturesSingleLotStrategy):
     def __init__(
-        self, symbol: str, margin_pct: float = 0.03, leverage: int = 5,
+        self, symbol: str, margin_pct: float | list[float] = 0.03, leverage: int = 5,
         panic_threshold: float = 0.001, rng: random.Random | None = None,
     ):
         super().__init__(symbol, margin_pct, leverage, name="panic_bot")

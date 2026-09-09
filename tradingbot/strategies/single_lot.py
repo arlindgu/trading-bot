@@ -11,16 +11,19 @@ once.
 """
 from __future__ import annotations
 
+import random
+
 from tradingbot.core.broker import PaperBroker
 from tradingbot.core.types import Bar
-from tradingbot.strategies.base import Strategy
+from tradingbot.strategies.base import Strategy, sample_pct
 
 
 class SingleLotStrategy(Strategy):
-    def __init__(self, symbol: str, position_pct: float, max_concurrent: int = 3):
+    def __init__(self, symbol: str, position_pct: float | list[float], max_concurrent: int = 3, rng: random.Random | None = None):
         self.symbol = symbol
         self.position_pct = position_pct
         self.max_concurrent = max_concurrent
+        self.rng = rng or random.Random()
         self.lot_ids: list[str] = []
         self._last_bar_timestamp = None
 
@@ -52,7 +55,7 @@ class SingleLotStrategy(Strategy):
         if len(self.lot_ids) >= self.max_concurrent:
             return
         equity = broker.equity({self.symbol: bar.close})
-        investment = equity * self.position_pct
+        investment = equity * sample_pct(self.position_pct, self.rng)
         required = investment * (1 + broker.fee_pct + broker.slippage_pct)
         if broker.cash < required:
             return

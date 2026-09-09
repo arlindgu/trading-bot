@@ -5,4 +5,4 @@ fee_pct: 0.001
 slippage_pct: 0.0005
 period: 20
 num_std: 2.0
-position_pct: 0.12
+position_pct: [0.08, 0.16]

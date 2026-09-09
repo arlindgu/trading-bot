@@ -12,7 +12,7 @@ from tradingbot.strategies.indicators import RSI
 
 class RsiScalpStrategy(FuturesSingleLotStrategy):
     def __init__(
-        self, symbol: str, margin_pct: float = 0.03, leverage: int = 3,
+        self, symbol: str, margin_pct: float | list[float] = 0.03, leverage: int = 3,
         period: int = 14, oversold: float = 20.0, overbought: float = 80.0,
     ):
         super().__init__(symbol, margin_pct, leverage, name="rsi_scalp")

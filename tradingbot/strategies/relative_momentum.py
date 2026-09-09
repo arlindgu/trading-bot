@@ -25,7 +25,7 @@ class RelativeMomentumConfig:
     slippage_pct: float
     return_period: int = 10
     average_period: int = 20
-    position_pct: float = 0.12
+    position_pct: float | list[float] = 0.12
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -35,7 +35,7 @@ class RelativeMomentumConfig:
 
 
 class RelativeMomentumStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, return_period: int = 10, average_period: int = 20, position_pct: float = 0.12):
+    def __init__(self, symbol: str, return_period: int = 10, average_period: int = 20, position_pct: float | list[float] = 0.12):
         super().__init__(symbol, position_pct)
         self.return_period = return_period
         self.closes: deque[float] = deque(maxlen=return_period + 1)

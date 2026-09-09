@@ -17,7 +17,7 @@ accounts:
   - account: grid_500
     configs: auto
     total_cash: 500
-    risk_pct: 0.03
+    risk_pct: [0.02, 0.045]
 
   # 9 real (technical) strategies -- USDT side, 500 each (4,500 total, +
   # grid's 500 = 5,000 of 5,000).

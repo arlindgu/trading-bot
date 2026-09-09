@@ -20,7 +20,7 @@ class VolumeSpikeConfig:
     slippage_pct: float
     volume_period: int = 20
     spike_multiplier: float = 2.0
-    position_pct: float = 0.12
+    position_pct: float | list[float] = 0.12
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -30,7 +30,7 @@ class VolumeSpikeConfig:
 
 
 class VolumeSpikeStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, volume_period: int = 20, spike_multiplier: float = 2.0, position_pct: float = 0.12):
+    def __init__(self, symbol: str, volume_period: int = 20, spike_multiplier: float = 2.0, position_pct: float | list[float] = 0.12):
         super().__init__(symbol, position_pct)
         self.avg_volume = RollingMean(volume_period)
         self.spike_multiplier = spike_multiplier

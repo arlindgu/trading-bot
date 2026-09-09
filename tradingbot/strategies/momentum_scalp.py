@@ -11,7 +11,7 @@ from tradingbot.strategies.futures_single_lot import FuturesSingleLotStrategy
 
 
 class MomentumScalpStrategy(FuturesSingleLotStrategy):
-    def __init__(self, symbol: str, margin_pct: float = 0.03, leverage: int = 3, lookback_bars: int = 5):
+    def __init__(self, symbol: str, margin_pct: float | list[float] = 0.03, leverage: int = 3, lookback_bars: int = 5):
         super().__init__(symbol, margin_pct, leverage, name="momentum_scalp")
         self.closes: deque[float] = deque(maxlen=lookback_bars + 1)
 

@@ -18,7 +18,7 @@ geometric: true  # geometrische Abstaende = gleiche %-Schritte, besser fuer brei
 # berechnet -- realisierte Gewinne vergroessern zukuenftige Positionsgroessen
 # (Zinseszins). Sweep-Sweetspot (8-Coin-Portfolio): Calmar 0.669,
 # +20.69% Return, -30.93% Drawdown ueber die gemeinsame Historie seit WIF-Listing.
-risk_pct_per_grid: 0.01
+risk_pct_per_grid: [0.0075, 0.0125]
 fee_pct: 0.001              # 0.1% Taker-Fee, realistisch fuer Binance Spot
 slippage_pct: 0.0005
 

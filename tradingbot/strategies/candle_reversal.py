@@ -12,7 +12,7 @@ from tradingbot.strategies.futures_single_lot import FuturesSingleLotStrategy
 
 
 class CandleReversalStrategy(FuturesSingleLotStrategy):
-    def __init__(self, symbol: str, margin_pct: float = 0.03, leverage: int = 3):
+    def __init__(self, symbol: str, margin_pct: float | list[float] = 0.03, leverage: int = 3):
         super().__init__(symbol, margin_pct, leverage, name="candle_reversal")
         self.bars_since_entry: int | None = None  # None = flat
 

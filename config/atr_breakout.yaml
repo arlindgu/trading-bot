@@ -6,4 +6,4 @@ slippage_pct: 0.0005
 mean_period: 20
 atr_period: 14
 atr_multiplier: 2.0
-position_pct: 0.12
+position_pct: [0.08, 0.16]

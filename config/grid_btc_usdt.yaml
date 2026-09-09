@@ -18,7 +18,8 @@ geometric: true  # geometrische Abstaende = gleiche %-Schritte, besser fuer brei
 # begrenzt, wie viel Kapital in einem einzelnen Slot gebunden werden kann,
 # falls er lange nicht schliesst. Ohne Stop-Loss ist es kein "Verlustrisiko"
 # im klassischen Sinn, sondern eine Exposure-Grenze pro Level.
-risk_pct_per_grid: 0.05  # Calmar-Optimum aus dem Sweep (2661% Return / -84% Drawdown ueber 2017-heute) --
+risk_pct_per_grid: [0.0375, 0.0625]  # Calmar-Optimum aus dem Sweep war 0.05 (2661% Return / -84% Drawdown ueber 2017-heute) --
+                          # jetzt als Range um diesen Wert, bei jedem Kauf neu ausgewuerfelt statt fix.
                           # ACHTUNG: -84% Drawdown entspricht praktisch BTCs eigenem Baerenmarkt-Risiko,
                           # bewusst gewaehlt trotz Warnung, kein konservativer Wert
 fee_pct: 0.001              # 0.1% Taker-Fee, realistisch fuer Binance Spot

@@ -19,7 +19,7 @@ geometric: true  # geometrische Abstaende = gleiche %-Schritte
 # begrenzt, wie viel Kapital in einem einzelnen Slot gebunden werden kann,
 # falls er lange nicht schliesst. Ohne Stop-Loss ist es kein "Verlustrisiko"
 # im klassischen Sinn, sondern eine Exposure-Grenze pro Level.
-risk_pct_per_grid: 0.05  # 0.5% von initial_cash pro Slot
+risk_pct_per_grid: [0.0375, 0.0625]  # 3.75-6.25% von initial_cash pro Slot, bei jedem Kauf neu ausgewuerfelt
 fee_pct: 0.001              # 0.1% Taker-Fee, realistisch fuer Binance Spot
 slippage_pct: 0.0005
 

@@ -19,7 +19,7 @@ class MacdMomentumConfig:
     fast_period: int = 12
     slow_period: int = 26
     signal_period: int = 9
-    position_pct: float = 0.12
+    position_pct: float | list[float] = 0.12
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -29,7 +29,7 @@ class MacdMomentumConfig:
 
 
 class MacdMomentumStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9, position_pct: float = 0.12):
+    def __init__(self, symbol: str, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9, position_pct: float | list[float] = 0.12):
         super().__init__(symbol, position_pct)
         self.macd = MACD(fast_period, slow_period, signal_period)
 

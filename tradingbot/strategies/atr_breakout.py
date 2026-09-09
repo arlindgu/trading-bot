@@ -22,7 +22,7 @@ class AtrBreakoutConfig:
     mean_period: int = 20
     atr_period: int = 14
     atr_multiplier: float = 2.0
-    position_pct: float = 0.12
+    position_pct: float | list[float] = 0.12
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -32,7 +32,7 @@ class AtrBreakoutConfig:
 
 
 class AtrBreakoutStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, mean_period: int = 20, atr_period: int = 14, atr_multiplier: float = 2.0, position_pct: float = 0.12):
+    def __init__(self, symbol: str, mean_period: int = 20, atr_period: int = 14, atr_multiplier: float = 2.0, position_pct: float | list[float] = 0.12):
         super().__init__(symbol, position_pct)
         self.mean = RollingMean(mean_period)
         self.atr = ATR(atr_period)

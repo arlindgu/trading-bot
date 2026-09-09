@@ -5,4 +5,4 @@ fee_pct: 0.001
 slippage_pct: 0.0005
 return_period: 10
 average_period: 20
-position_pct: 0.12
+position_pct: [0.08, 0.16]

@@ -18,7 +18,7 @@ import random
 
 from tradingbot.core.futures_broker import FuturesBroker
 from tradingbot.core.types import Bar
-from tradingbot.strategies.base import Strategy
+from tradingbot.strategies.base import Strategy, sample_pct
 
 # (mood, weight) -- higher weight = rolled more often. Skewed toward the
 # tamer moods so it doesn't churn fees into dust every single candle, but
@@ -27,7 +27,7 @@ FUTURES_MOODS = [("nibble", 4), ("yolo", 1), ("double_down", 2), ("flip", 1), ("
 
 
 class RaidBossFuturesStrategy(Strategy):
-    def __init__(self, symbol: str, margin_pct: float = 0.03, max_concurrent: int = 5, rng: random.Random | None = None):
+    def __init__(self, symbol: str, margin_pct: float | list[float] = 0.03, max_concurrent: int = 5, rng: random.Random | None = None):
         self.symbol = symbol
         self.margin_pct = margin_pct
         self.max_concurrent = max_concurrent
@@ -74,20 +74,22 @@ class RaidBossFuturesStrategy(Strategy):
             self._close_all(bar, broker, reason="raidboss_rage_quit")
             return
 
+        base_margin_pct = sample_pct(self.margin_pct, self.rng)
+
         if mood == "flip":
             last_side = broker.positions[self.lot_ids[-1]].side if self.lot_ids else None
             self._close_all(bar, broker, reason="raidboss_flip")
             new_side = "short" if last_side == "long" else "long"
-            self._open(bar, broker, new_side, self.margin_pct * 2, self.rng.choice([5, 10, 20]), mood)
+            self._open(bar, broker, new_side, base_margin_pct * 2, self.rng.choice([5, 10, 20]), mood)
             return
 
         if mood == "double_down":
             last_side = broker.positions[self.lot_ids[-1]].side if self.lot_ids else self.rng.choice(["long", "short"])
-            self._open(bar, broker, last_side, self.margin_pct, self.rng.choice([3, 5, 10]), mood)
+            self._open(bar, broker, last_side, base_margin_pct, self.rng.choice([3, 5, 10]), mood)
             return
 
         side = self.rng.choice(["long", "short"])
         if mood == "yolo":
-            self._open(bar, broker, side, self.margin_pct * 3, self.rng.choice([20, 25, 50]), mood)
+            self._open(bar, broker, side, base_margin_pct * 3, self.rng.choice([20, 25, 50]), mood)
         else:  # nibble
-            self._open(bar, broker, side, self.margin_pct, self.rng.choice([1, 2, 3]), mood)
+            self._open(bar, broker, side, base_margin_pct, self.rng.choice([1, 2, 3]), mood)

@@ -6,4 +6,4 @@ slippage_pct: 0.0005
 period: 14
 oversold: 30.0
 exit_above: 60.0
-position_pct: 0.12
+position_pct: [0.08, 0.16]

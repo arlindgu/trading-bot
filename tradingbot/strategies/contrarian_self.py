@@ -19,7 +19,7 @@ class ContrarianSelfConfig:
     fee_pct: float
     slippage_pct: float
     hold_bars: int = 6
-    position_pct: float = 0.15
+    position_pct: float | list[float] = 0.15
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -29,7 +29,7 @@ class ContrarianSelfConfig:
 
 
 class ContrarianSelfStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, hold_bars: int = 6, position_pct: float = 0.15):
+    def __init__(self, symbol: str, hold_bars: int = 6, position_pct: float | list[float] = 0.15):
         super().__init__(symbol, position_pct)
         self.hold_bars = hold_bars
         self.bars_held = 0

@@ -21,7 +21,7 @@ class Friday13Config:
     timeframe: str
     fee_pct: float
     slippage_pct: float
-    position_pct: float = 0.15
+    position_pct: float | list[float] = 0.15
     lookback_days: int = 90
     initial_cash: float | None = None
 

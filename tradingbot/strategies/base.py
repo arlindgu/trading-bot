@@ -1,9 +1,20 @@
 from __future__ import annotations
 
+import random
 from abc import ABC, abstractmethod
 
 from tradingbot.core.broker import PaperBroker
 from tradingbot.core.types import Bar
+
+
+def sample_pct(value: float | list[float] | tuple[float, float], rng: random.Random) -> float:
+    """A risk/position-pct config value is either a flat fraction or a
+    [min, max] range -- resample the range on every call so a bot doesn't
+    size every trade at the same fixed pct for its whole run."""
+    if isinstance(value, (list, tuple)):
+        low, high = value
+        return rng.uniform(low, high)
+    return value
 
 
 class Strategy(ABC):

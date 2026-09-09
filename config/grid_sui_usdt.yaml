@@ -12,7 +12,7 @@ upper_price: 6.00
 num_grids: 20
 geometric: true  # geometrische Abstaende = gleiche %-Schritte, besser fuer breite Crypto-Ranges
 
-risk_pct_per_grid: 0.01
+risk_pct_per_grid: [0.0075, 0.0125]
 fee_pct: 0.001
 slippage_pct: 0.0005
 

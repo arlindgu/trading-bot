@@ -24,7 +24,7 @@ import random
 
 from tradingbot.core.futures_broker import FuturesBroker
 from tradingbot.core.types import Bar
-from tradingbot.strategies.base import Strategy
+from tradingbot.strategies.base import Strategy, sample_pct
 
 TP_CHOICES = [0.02, 0.03, 0.05]  # take-profit, as a fraction of entry price
 SL_CHOICES = [0.01, 0.02, 0.03]  # stop-loss, as a fraction of entry price
@@ -36,7 +36,7 @@ class CoinflipStrategy(Strategy):
         self,
         symbol: str,
         leverage_choices: list[int],
-        margin_pct: float,
+        margin_pct: float | list[float],
         max_concurrent: int = 3,
         rng: random.Random | None = None,
     ):
@@ -76,7 +76,7 @@ class CoinflipStrategy(Strategy):
         open_count = sum(1 for p in broker.positions.values() if p.symbol == self.symbol)
         if open_count < self.max_concurrent:
             equity = broker.equity({self.symbol: bar.close})
-            margin = equity * self.margin_pct
+            margin = equity * sample_pct(self.margin_pct, self.rng)
             side = self.rng.choice(["long", "short"])
             leverage = self.rng.choice(self.leverage_choices)
             tp_pct = self.rng.choice(TP_CHOICES)

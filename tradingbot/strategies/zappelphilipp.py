@@ -32,7 +32,7 @@ class ZappelphilippConfig:
     timeframe: str
     fee_pct: float
     slippage_pct: float
-    position_pct: float = 0.15
+    position_pct: float | list[float] = 0.15
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -42,7 +42,7 @@ class ZappelphilippConfig:
 
 
 class ZappelphilippStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, position_pct: float = 0.15, rng: random.Random | None = None):
+    def __init__(self, symbol: str, position_pct: float | list[float] = 0.15, rng: random.Random | None = None):
         super().__init__(symbol, position_pct, max_concurrent=1)
         self.rng = rng or random.Random()
         self.trade_count = 0

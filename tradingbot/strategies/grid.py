@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 
 from tradingbot.core.broker import PaperBroker
 from tradingbot.core.types import Bar
-from tradingbot.strategies.base import Strategy
+from tradingbot.strategies.base import Strategy, sample_pct
 
 
 @dataclass
@@ -20,7 +21,7 @@ class GridConfig:
     geometric: bool = False
     lookback_days: int = 90
     investment_per_grid: float | None = None
-    risk_pct_per_grid: float | None = None  # alternative to investment_per_grid: fraction of CURRENT equity per slot, recomputed on every buy
+    risk_pct_per_grid: float | list[float] | None = None  # alternative to investment_per_grid: fraction of CURRENT equity per slot (or a [min, max] range resampled every buy), recomputed on every buy
     initial_cash: float | None = None
 
     def __post_init__(self) -> None:
@@ -67,7 +68,8 @@ class GridStrategy(Strategy):
         num_grids: int,
         geometric: bool = False,
         investment_per_grid: float | None = None,
-        risk_pct_per_grid: float | None = None,
+        risk_pct_per_grid: float | list[float] | None = None,
+        rng: random.Random | None = None,
     ):
         if upper_price <= lower_price:
             raise ValueError("upper_price must be greater than lower_price")
@@ -79,6 +81,7 @@ class GridStrategy(Strategy):
         self.symbol = symbol
         self.fixed_investment_per_grid = investment_per_grid
         self.risk_pct_per_grid = risk_pct_per_grid
+        self.rng = rng or random.Random()
         levels = self._build_levels(lower_price, upper_price, num_grids, geometric)
         self.slots = [_Slot(buy_price=levels[i], sell_price=levels[i + 1]) for i in range(num_grids)]
 
@@ -132,7 +135,7 @@ class GridStrategy(Strategy):
         if self.fixed_investment_per_grid is not None:
             return self.fixed_investment_per_grid
         equity = broker.equity({self.symbol: bar.close})
-        return equity * self.risk_pct_per_grid
+        return equity * sample_pct(self.risk_pct_per_grid, self.rng)
 
     def on_bar(self, bar: Bar, broker: PaperBroker) -> None:
         # Sells first so a slot that completes this bar frees its cash (and,

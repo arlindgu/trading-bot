@@ -11,7 +11,7 @@ from tradingbot.strategies.indicators import EMA
 
 
 class EmaScalpStrategy(FuturesSingleLotStrategy):
-    def __init__(self, symbol: str, margin_pct: float = 0.03, leverage: int = 3, fast_period: int = 5, slow_period: int = 13):
+    def __init__(self, symbol: str, margin_pct: float | list[float] = 0.03, leverage: int = 3, fast_period: int = 5, slow_period: int = 13):
         super().__init__(symbol, margin_pct, leverage, name="ema_scalp")
         self.fast = EMA(fast_period)
         self.slow = EMA(slow_period)

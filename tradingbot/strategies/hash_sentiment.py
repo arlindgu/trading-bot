@@ -26,7 +26,7 @@ class HashSentimentConfig:
     fee_pct: float
     slippage_pct: float
     threshold: float = 0.6
-    position_pct: float = 0.15
+    position_pct: float | list[float] = 0.15
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -36,7 +36,7 @@ class HashSentimentConfig:
 
 
 class HashSentimentStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, threshold: float = 0.6, position_pct: float = 0.15):
+    def __init__(self, symbol: str, threshold: float = 0.6, position_pct: float | list[float] = 0.15):
         super().__init__(symbol, position_pct)
         self.threshold = threshold
 

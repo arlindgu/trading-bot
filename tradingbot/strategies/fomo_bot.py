@@ -20,7 +20,7 @@ class FomoBotConfig:
     slippage_pct: float
     lookback_bars: int = 6
     pump_threshold: float = 0.05
-    position_pct: float = 0.15
+    position_pct: float | list[float] = 0.15
     lookback_days: int = 90
     initial_cash: float | None = None
 
@@ -30,7 +30,7 @@ class FomoBotConfig:
 
 
 class FomoBotStrategy(SingleLotStrategy):
-    def __init__(self, symbol: str, lookback_bars: int = 6, pump_threshold: float = 0.05, position_pct: float = 0.15):
+    def __init__(self, symbol: str, lookback_bars: int = 6, pump_threshold: float = 0.05, position_pct: float | list[float] = 0.15):
         super().__init__(symbol, position_pct)
         self.closes: deque[float] = deque(maxlen=lookback_bars + 1)
         self.pump_threshold = pump_threshold
