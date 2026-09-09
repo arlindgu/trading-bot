@@ -119,19 +119,34 @@ def restore_positions(broker, session: Session, account: str) -> None:
 
 def restore_futures_positions(broker, session: Session, account: str) -> None:
     """Same idea as `restore_positions`, but for FuturesBroker: positions
-    are keyed by symbol (not lot id) and carry side/leverage/margin that
-    live only in the trade tag (`coinflip:<side>:<leverage>`) and the
-    persisted notional (size * entry_price), not as their own DB columns.
+    are keyed by lot id (several concurrent lots per symbol are allowed)
+    and carry side/leverage/margin (and, for coinflip, tp/sl) that live
+    only in the trade tag (`coinflip:<side>:<leverage>` or
+    `coinflip:<side>:<leverage>:tp<pct>:sl<pct>`) and the persisted notional
+    (size * entry_price), not as their own DB columns.
     """
     from tradingbot.core.futures_broker import FuturesPosition
 
     positions = session.execute(select(PositionRow).where(PositionRow.account == account)).scalars().all()
     for p in positions:
-        _, side, leverage = p.tag.split(":")
+        parts = p.tag.split(":")
+        side, leverage = parts[1], parts[2]
+        tp_pct = float(parts[3][2:]) if len(parts) > 3 else None
+        sl_pct = float(parts[4][2:]) if len(parts) > 4 else None
         margin = p.size * p.entry_price / int(leverage)
-        broker.positions[p.symbol] = FuturesPosition(
-            p.lot_id, p.symbol, side, int(leverage), p.entry_price, p.size, p.entry_time, margin
+        broker.positions[p.lot_id] = FuturesPosition(
+            p.lot_id, p.symbol, side, int(leverage), p.entry_price, p.size, p.entry_time, margin, tp_pct, sl_pct
         )
+
+    # Same reasoning as restore_positions: resume the lot counter above the
+    # highest id seen so far so new lots never collide with restored ones.
+    used = []
+    for lot_id in broker.positions:
+        try:
+            used.append(int(lot_id.rsplit("-", 1)[-1]))
+        except ValueError:
+            continue
+    broker._lot_counter = itertools.count(max(used, default=0) + 1)
 
     broker._db_persisted_trade_count = session.execute(
         select(func.count()).select_from(TradeRow).where(TradeRow.account == account)

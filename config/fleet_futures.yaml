@@ -1,0 +1,21 @@
+# Every account cli/futures_fleet.py runs, sharing ONE demo-account futures
+# wallet split by margin asset (USDT / USDC). Coinflip is still the only
+# leveraged strategy -- see README.md's "Live order execution" section for
+# why real/joke strategies stay spot-only. One account per margin asset,
+# 500 each -- 500 of 5,000 real balance per pool, plenty of headroom.
+accounts:
+  - account: coinflip_usdt_500
+    margin_asset: USDT
+    leverage: [1, 2, 3, 5]
+    margin_pct: 0.03
+    max_concurrent: 3
+    total_cash: 500
+    symbols: [LINK/USDT, TIA/USDT, DOT/USDT, ETH/USDT, WIF/USDT, AVAX/USDT, SOL/USDT, ARB/USDT]
+
+  - account: coinflip_usdc_500
+    margin_asset: USDC
+    leverage: [1, 2, 3, 5, 10, 20]
+    margin_pct: 0.03
+    max_concurrent: 3
+    total_cash: 500
+    symbols: [LINK/USDT, TIA/USDT, DOT/USDT, ETH/USDT, WIF/USDT, AVAX/USDT, SOL/USDT, ARB/USDT]

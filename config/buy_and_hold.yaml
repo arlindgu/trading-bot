@@ -1,0 +1,7 @@
+strategy: buy_and_hold
+exchange: binance
+timeframe: 1h
+fee_pct: 0.001
+slippage_pct: 0.0005
+position_pct: 0.11
+symbols: [LINK/USDT, TIA/USDT, DOT/USDT, ETH/USDT, WIF/USDT, AVAX/USDT, SOL/USDT, ARB/USDT]

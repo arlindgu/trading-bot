@@ -31,19 +31,29 @@ def run_once(
     broker: FuturesBroker,
     session: Session,
     account: str,
+    bars: dict[str, Bar] | None = None,
 ) -> float:
+    """`bars`, when given, is a pre-fetched {symbol: Bar} map -- see
+    portfolio_live.run_once's docstring; same dedup, used by
+    cli/futures_fleet.py."""
     latest_close: dict[str, float] = {}
     for symbol, strategy in strategies.items():
-        recent = fetch_recent(symbol, timeframe, BARS_TO_FETCH, exchange)
-        if recent.empty:
-            print(f"[skip] {symbol}: no data returned")
-            continue
-        row = recent.iloc[-1]
-        bar = Bar(row["timestamp"], row["open"], row["high"], row["low"], row["close"], row["volume"])
+        if bars is not None:
+            bar = bars.get(symbol)
+            if bar is None:
+                print(f"[skip] {symbol}: no data available this cycle")
+                continue
+        else:
+            recent = fetch_recent(symbol, timeframe, BARS_TO_FETCH, exchange)
+            if recent.empty:
+                print(f"[skip] {symbol}: no data returned")
+                continue
+            row = recent.iloc[-1]
+            bar = Bar(row["timestamp"], row["open"], row["high"], row["low"], row["close"], row["volume"])
         strategy.on_bar(bar, broker)
         latest_close[symbol] = bar.close
-        position = broker.positions.get(symbol)
-        state = f"{position.side} {position.leverage}x" if position else "flat"
+        open_lots = [p for p in broker.positions.values() if p.symbol == symbol]
+        state = ", ".join(f"{p.side} {p.leverage}x" for p in open_lots) if open_lots else "flat"
         print(f"[{bar.timestamp}] {symbol} close={bar.close:.6g} ({state})")
 
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -52,11 +62,13 @@ def run_once(
     db.append_portfolio_snapshot(session, account, timestamp, equity, broker.cash)
     for symbol, mark_price in latest_close.items():
         realized = sum(t["pnl"] for t in broker.trade_log if t["symbol"] == symbol and t["pnl"] is not None)
-        position = broker.positions.get(symbol)
-        unrealized = _unrealized_pnl(position, mark_price) if position else 0.0
+        open_lots = [p for p in broker.positions.values() if p.symbol == symbol]
+        unrealized = sum(_unrealized_pnl(p, mark_price) for p in open_lots)
         db.append_symbol_snapshot(session, account, symbol, timestamp, mark_price, realized, unrealized)
 
-    open_by_symbol = {s: f"{p.side} {p.leverage}x" for s, p in broker.positions.items()}
+    open_by_symbol: dict[str, list[str]] = {}
+    for p in broker.positions.values():
+        open_by_symbol.setdefault(p.symbol, []).append(f"{p.side} {p.leverage}x")
     print(f"  equity={equity:.2f} cash={broker.cash:.2f} open_positions={len(broker.positions)} {open_by_symbol}")
 
     return equity

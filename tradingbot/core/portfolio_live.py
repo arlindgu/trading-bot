@@ -28,15 +28,26 @@ def run_once(
     broker: PaperBroker,
     session: Session,
     account: str,
+    bars: dict[str, Bar] | None = None,
 ) -> float:
+    """`bars`, when given, is a pre-fetched {symbol: Bar} map -- used by
+    cli/spot_fleet.py to fetch each symbol's bar once per poll cycle and
+    share it across every account trading that symbol, instead of every
+    account independently re-fetching the same public OHLCV data."""
     latest_close: dict[str, float] = {}
     for symbol, strategy in strategies.items():
-        recent = fetch_recent(symbol, timeframe, BARS_TO_FETCH, exchange)
-        if recent.empty:
-            print(f"[skip] {symbol}: no data returned")
-            continue
-        row = recent.iloc[-1]
-        bar = Bar(row["timestamp"], row["open"], row["high"], row["low"], row["close"], row["volume"])
+        if bars is not None:
+            bar = bars.get(symbol)
+            if bar is None:
+                print(f"[skip] {symbol}: no data available this cycle")
+                continue
+        else:
+            recent = fetch_recent(symbol, timeframe, BARS_TO_FETCH, exchange)
+            if recent.empty:
+                print(f"[skip] {symbol}: no data returned")
+                continue
+            row = recent.iloc[-1]
+            bar = Bar(row["timestamp"], row["open"], row["high"], row["low"], row["close"], row["volume"])
         strategy.on_bar(bar, broker)
         latest_close[symbol] = bar.close
         print(f"[{bar.timestamp}] {symbol} close={bar.close:.6g}")

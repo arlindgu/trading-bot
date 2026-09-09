@@ -47,30 +47,48 @@ def _target_price(tag: str, levels: list[float]) -> float | None:
 def _coinflip_info(tag: str) -> dict | None:
     if not tag or not tag.startswith("coinflip:"):
         return None
-    _, side, leverage = tag.split(":")
+    parts = tag.split(":")
+    _, side, leverage = parts[0], parts[1], parts[2]
     return {"side": side, "leverage": int(leverage)}
+
+
+def _info(tag: str) -> str | None:
+    """Generic fallback for any strategy that isn't grid/coinflip: every
+    strategy writes a short human-readable state into its Position.tag
+    (e.g. "moon:full", "fomo:pump:+6.2%") -- shown verbatim by the
+    dashboard's generic Info column so a new strategy needs zero UI code
+    to be visible, only a good tag string."""
+    if not tag or tag.startswith("grid:") or tag.startswith("coinflip:"):
+        return None
+    return tag
 
 # Every account this dashboard can display, grouped by which strategy runs
 # it, with how much starting capital to compute Total PnL % against. Add an
 # entry here for any new parallel bot account that should be selectable.
 ACCOUNTS = {
-    "alts8_testnet_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "grid"},
-    "alts8_testnet_1000": {"label": "1,000 USDT", "starting_cash": 1000.0, "strategy": "grid"},
-    "alts8_testnet_2000": {"label": "2,000 USDT", "starting_cash": 2000.0, "strategy": "grid"},
-    "alts8_testnet_4000": {"label": "4,000 USDT", "starting_cash": 4000.0, "strategy": "grid"},
-    "alts8_testnet_8000": {"label": "8,000 USDT", "starting_cash": 8000.0, "strategy": "grid"},
+    "grid_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "grid"},
+    "ma_crossover_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "ma_crossover"},
+    "donchian_breakout_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "donchian_breakout"},
+    "rsi_reversion_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "rsi_reversion"},
+    "bollinger_reversion_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "bollinger_reversion"},
+    "macd_momentum_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "macd_momentum"},
+    "atr_breakout_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "atr_breakout"},
+    "volume_spike_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "volume_spike"},
+    "relative_momentum_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "relative_momentum"},
+    "buy_and_hold_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "buy_and_hold"},
     "coinflip_usdt_500": {"label": "500 USDT (1-5x)", "starting_cash": 500.0, "strategy": "coinflip"},
-    "coinflip_usdt_750": {"label": "750 USDT (1-5x)", "starting_cash": 750.0, "strategy": "coinflip"},
-    "coinflip_usdt_1000": {"label": "1,000 USDT (1-5x)", "starting_cash": 1000.0, "strategy": "coinflip"},
-    "coinflip_usdt_1250": {"label": "1,250 USDT (1-5x)", "starting_cash": 1250.0, "strategy": "coinflip"},
-    "coinflip_usdt_1500": {"label": "1,500 USDT (1-5x)", "starting_cash": 1500.0, "strategy": "coinflip"},
     "coinflip_usdc_500": {"label": "500 USDC (1-20x)", "starting_cash": 500.0, "strategy": "coinflip"},
-    "coinflip_usdc_750": {"label": "750 USDC (1-20x)", "starting_cash": 750.0, "strategy": "coinflip"},
-    "coinflip_usdc_1000": {"label": "1,000 USDC (1-20x)", "starting_cash": 1000.0, "strategy": "coinflip"},
-    "coinflip_usdc_1250": {"label": "1,250 USDC (1-20x)", "starting_cash": 1250.0, "strategy": "coinflip"},
-    "coinflip_usdc_1500": {"label": "1,500 USDC (1-20x)", "starting_cash": 1500.0, "strategy": "coinflip"},
+    "moon_phase_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "moon_phase"},
+    "friday13_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "friday13"},
+    "prime_number_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "prime_number"},
+    "contrarian_self_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "contrarian_self"},
+    "fomo_bot_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "fomo_bot"},
+    "diamond_hands_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "diamond_hands"},
+    "buy_high_sell_low_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "buy_high_sell_low"},
+    "zodiac_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "zodiac"},
+    "hash_sentiment_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "hash_sentiment"},
 }
-DEFAULT_ACCOUNT = "alts8_testnet_500"
+DEFAULT_ACCOUNT = "grid_500"
 
 DB_PATH = STATE_DIR / "trading.db"
 DIST_DIR = Path(__file__).resolve().parent.parent / "dashboard" / "dist"
@@ -100,7 +118,8 @@ def accounts():
     return jsonify([{"id": account_id, **meta} for account_id, meta in ACCOUNTS.items()])
 
 
-# Real underlying testnet account balance, across all 5 bots -- cached so
+# One Binance Demo Trading account, two balance pools (spot, futures) --
+# both endpoints below read the same BINANCE_DEMO_KEY/_SECRET now. Cached so
 # the dashboard's ~30s polling (times however many people have it open)
 # doesn't add to the same account's Binance rate limit the bots already
 # compete for.
@@ -110,18 +129,23 @@ WALLET_CACHE_SECONDS = 60
 
 @app.route("/api/wallet_balance")
 def wallet_balance():
+    """Spot side of the demo account (USDT + USDC), used by grid and the
+    other spot-side strategies."""
     now = time.time()
     if _wallet_cache["value"] is None or now - _wallet_cache["fetched_at"] > WALLET_CACHE_SECONDS:
-        api_key = os.environ.get("BINANCE_TESTNET_API_KEY")
-        api_secret = os.environ.get("BINANCE_TESTNET_API_SECRET")
+        api_key = os.environ.get("BINANCE_DEMO_KEY")
+        api_secret = os.environ.get("BINANCE_DEMO_SECRET")
         if not api_key or not api_secret:
-            return jsonify({"usdt": None, "error": "no testnet API key configured"}), 200
+            return jsonify({"usdt": None, "usdc": None, "error": "no demo API key configured"}), 200
         exchange = ccxt.binance({"apiKey": api_key, "secret": api_secret, "enableRateLimit": True})
-        exchange.set_sandbox_mode(True)
+        exchange.enable_demo_trading(True)
         balance = exchange.fetch_balance()
-        _wallet_cache["value"] = float(balance.get("free", {}).get("USDT", 0.0))
+        _wallet_cache["value"] = {
+            "usdt": float(balance.get("free", {}).get("USDT", 0.0)),
+            "usdc": float(balance.get("free", {}).get("USDC", 0.0)),
+        }
         _wallet_cache["fetched_at"] = now
-    return jsonify({"usdt": _wallet_cache["value"]})
+    return jsonify(_wallet_cache["value"])
 
 
 _futures_wallet_cache: dict = {"value": None, "fetched_at": 0.0}
@@ -129,12 +153,14 @@ _futures_wallet_cache: dict = {"value": None, "fetched_at": 0.0}
 
 @app.route("/api/futures_wallet_balance")
 def futures_wallet_balance():
+    """Futures side of the same demo account (USDT + USDC margin), used by
+    coinflip."""
     now = time.time()
     if _futures_wallet_cache["value"] is None or now - _futures_wallet_cache["fetched_at"] > WALLET_CACHE_SECONDS:
-        api_key = os.environ.get("BINANCE_DEMO_FUTURES_KEY")
-        api_secret = os.environ.get("BINANCE_DEMO_FUTURES_SECRET")
+        api_key = os.environ.get("BINANCE_DEMO_KEY")
+        api_secret = os.environ.get("BINANCE_DEMO_SECRET")
         if not api_key or not api_secret:
-            return jsonify({"usdt": None, "usdc": None, "error": "no futures demo API key configured"}), 200
+            return jsonify({"usdt": None, "usdc": None, "error": "no demo API key configured"}), 200
         exchange = ccxt.binanceusdm({"apiKey": api_key, "secret": api_secret, "enableRateLimit": True})
         exchange.enable_demo_trading(True)
         balance = exchange.fetch_balance()
@@ -224,6 +250,7 @@ def symbol_positions(symbol: str):
     for p in positions:
         p["target_price"] = _target_price(p["tag"], levels) if levels else None
         p["coinflip"] = _coinflip_info(p["tag"])
+        p["info"] = _info(p["tag"])
     return jsonify(positions)
 
 

@@ -49,6 +49,7 @@ export function CoinCard({
   }, [positions, summary.mark_price])
 
   const isCoinflip = sortedPositions.some((p) => p.coinflip != null)
+  const hasTargetPrice = sortedPositions.some((p) => p.target_price != null)
 
   return (
     <Card>
@@ -127,11 +128,13 @@ export function CoinCard({
                       <TableHead className="text-right">Side</TableHead>
                       <TableHead className="text-right">Lev</TableHead>
                     </>
-                  ) : (
+                  ) : hasTargetPrice ? (
                     <>
                       <TableHead className="text-right">Target</TableHead>
                       <TableHead className="text-right">To go</TableHead>
                     </>
+                  ) : (
+                    <TableHead className="text-right">Info</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -160,7 +163,7 @@ export function CoinCard({
                             {position.coinflip.leverage}x
                           </TableCell>
                         </>
-                      ) : (
+                      ) : hasTargetPrice ? (
                         <>
                           <TableCell className="text-right font-mono text-xs tabular-nums">
                             {position.target_price != null ? formatUsdt(position.target_price, { decimals: 4 }) : "–"}
@@ -169,6 +172,14 @@ export function CoinCard({
                             {toGoPct != null ? `+${toGoPct.toFixed(2)}%` : "–"}
                           </TableCell>
                         </>
+                      ) : (
+                        <TableCell className="text-right">
+                          {position.info ? (
+                            <span className="font-mono text-[11px] text-muted-foreground">{position.info}</span>
+                          ) : (
+                            "–"
+                          )}
+                        </TableCell>
                       )}
                     </TableRow>
                   )

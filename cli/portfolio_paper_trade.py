@@ -7,12 +7,12 @@ Usage:
         config/grid_link_usdt.yaml config/grid_tia_usdt.yaml ...     # loop, poll every 5 min
     ... --once   # single check-and-trade pass across all symbols
 
-    ... --testnet --account alts8_testnet --key-prefix BINANCE_TESTNET_API_500
-        # REAL orders against Binance Spot Testnet (fake funds, real order
-        # execution/API). Requires <prefix>_KEY / <prefix>_SECRET in a .env
-        # file (see .env.example; prefix defaults to BINANCE_TESTNET_API).
-        # Give each parallel testnet bot its own key/testnet account (via
-        # --key-prefix) so they don't compete for the same real balance.
+    ... --demo --account alts8_demo
+        # REAL orders against the Binance Demo Trading account's spot
+        # balance (fake funds, real order execution/API). Requires
+        # BINANCE_DEMO_KEY / BINANCE_DEMO_SECRET in a .env file (see
+        # .env.example) -- every bot shares the same demo account, each
+        # tracking its own self-contained --total-cash budget slice.
 
 --num-grids/--risk-pct/--geometric override every config's own value with
 one shared setting (e.g. a sweep's chosen combo) instead of editing each
@@ -55,7 +55,7 @@ def main() -> None:
 
     total_cash = float(parse_flag(argv, "--total-cash") or 500)
     account = parse_flag(argv, "--account") or "portfolio"
-    testnet = "--testnet" in argv
+    demo = "--demo" in argv
 
     overrides: dict = {}
     if parse_flag(argv, "--num-grids"):
@@ -84,13 +84,12 @@ def main() -> None:
     session_factory = db.get_session_factory(DB_PATH)
     session = session_factory()
 
-    if testnet:
+    if demo:
         load_dotenv()
-        key_prefix = parse_flag(argv, "--key-prefix") or "BINANCE_TESTNET_API"
-        api_key = os.environ.get(f"{key_prefix}_KEY")
-        api_secret = os.environ.get(f"{key_prefix}_SECRET")
+        api_key = os.environ.get("BINANCE_DEMO_KEY")
+        api_secret = os.environ.get("BINANCE_DEMO_SECRET")
         if not api_key or not api_secret:
-            print(f"Set {key_prefix}_KEY and {key_prefix}_SECRET in a .env file to use --testnet.")
+            print("Set BINANCE_DEMO_KEY and BINANCE_DEMO_SECRET in a .env file to use --demo.")
             sys.exit(1)
         from tradingbot.core.exchange_broker import ExchangeBroker
         from tradingbot.core.db import CashBalanceRow
@@ -101,9 +100,9 @@ def main() -> None:
         existing = session.get(CashBalanceRow, account)
         capital = existing.cash if existing is not None else total_cash
 
-        broker = ExchangeBroker(exchange, api_key, api_secret, capital=capital, testnet=True)
+        broker = ExchangeBroker(exchange, api_key, api_secret, capital=capital)
         db.restore_positions(broker, session, account)
-        print(f"[testnet] connected, tracked budget: {broker.cash:.2f} (real wallet: {broker.fetch_wallet_balance():.2f})")
+        print(f"[demo] connected, tracked budget: {broker.cash:.2f} (real wallet: {broker.fetch_wallet_balance():.2f})")
     else:
         broker = db.load_broker(session, account, total_cash, fee_pct, slippage_pct)
 

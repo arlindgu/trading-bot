@@ -50,9 +50,30 @@ export interface OpenPosition {
   tag: string
   target_price: number | null
   coinflip: CoinflipInfo | null
+  info: string | null
 }
 
-export type StrategyId = "grid" | "coinflip"
+export type StrategyId =
+  | "grid"
+  | "coinflip"
+  | "ma_crossover"
+  | "donchian_breakout"
+  | "rsi_reversion"
+  | "bollinger_reversion"
+  | "macd_momentum"
+  | "atr_breakout"
+  | "volume_spike"
+  | "relative_momentum"
+  | "buy_and_hold"
+  | "moon_phase"
+  | "friday13"
+  | "prime_number"
+  | "contrarian_self"
+  | "fomo_bot"
+  | "diamond_hands"
+  | "buy_high_sell_low"
+  | "zodiac"
+  | "hash_sentiment"
 
 export interface Account {
   id: string
@@ -63,14 +84,11 @@ export interface Account {
 
 export interface WalletBalance {
   usdt: number | null
-  error?: string
-}
-
-export interface FuturesWalletBalance {
-  usdt: number | null
   usdc: number | null
   error?: string
 }
+
+export type FuturesWalletBalance = WalletBalance
 
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url)

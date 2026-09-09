@@ -5,7 +5,6 @@ margin budget. For laughs -- no signal, purely random entries/exits.
 Usage:
     python cli/coinflip_trade.py --account coinflip_usdt_500 --total-cash 500 \\
         --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 \\
-        --key-prefix BINANCE_DEMO_FUTURES \\
         LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
 
 Symbols are passed in the same "BASE/USDT" shape as the grid configs --
@@ -63,13 +62,13 @@ def main() -> None:
     margin_asset = parse_flag(argv, "--margin-asset") or "USDT"
     margin_pct = float(parse_flag(argv, "--margin-pct") or 0.03)
     leverage_choices = [int(x) for x in (parse_flag(argv, "--leverage") or "1,2,3,5").split(",")]
+    max_concurrent = int(parse_flag(argv, "--max-concurrent") or 3)
     poll_seconds = int(parse_flag(argv, "--poll-seconds") or 300)
-    key_prefix = parse_flag(argv, "--key-prefix") or "BINANCE_DEMO_FUTURES"
 
-    api_key = os.environ.get(f"{key_prefix}_KEY")
-    api_secret = os.environ.get(f"{key_prefix}_SECRET")
+    api_key = os.environ.get("BINANCE_DEMO_KEY")
+    api_secret = os.environ.get("BINANCE_DEMO_SECRET")
     if not api_key or not api_secret:
-        print(f"Set {key_prefix}_KEY and {key_prefix}_SECRET in a .env file.")
+        print("Set BINANCE_DEMO_KEY and BINANCE_DEMO_SECRET in a .env file.")
         sys.exit(1)
 
     session_factory = db.get_session_factory(DB_PATH)
@@ -88,7 +87,7 @@ def main() -> None:
         if symbol is None:
             print(f"[skip] no {margin_asset} futures market for {spot_symbol}")
             continue
-        strategies[symbol] = CoinflipStrategy(symbol, leverage_choices, margin_pct)
+        strategies[symbol] = CoinflipStrategy(symbol, leverage_choices, margin_pct, max_concurrent)
 
     if "--once" in argv:
         run_once(strategies, TIMEFRAME, EXCHANGE, broker, session, account)

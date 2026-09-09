@@ -20,6 +20,24 @@ const POLL_MS = 30_000
 const STRATEGIES: { id: StrategyId; label: string }[] = [
   { id: "grid", label: "Grid" },
   { id: "coinflip", label: "Coinflip" },
+  { id: "ma_crossover", label: "MA Crossover" },
+  { id: "donchian_breakout", label: "Donchian Breakout" },
+  { id: "rsi_reversion", label: "RSI Reversion" },
+  { id: "bollinger_reversion", label: "Bollinger Reversion" },
+  { id: "macd_momentum", label: "MACD Momentum" },
+  { id: "atr_breakout", label: "ATR Breakout" },
+  { id: "volume_spike", label: "Volume Spike" },
+  { id: "relative_momentum", label: "Relative Momentum" },
+  { id: "buy_and_hold", label: "Buy & Hold" },
+  { id: "moon_phase", label: "Vollmond-Trader" },
+  { id: "friday13", label: "Freitag-13-Trader" },
+  { id: "prime_number", label: "Primzahl-Trader" },
+  { id: "contrarian_self", label: "Contrarian-Self" },
+  { id: "fomo_bot", label: "FOMO-Bot" },
+  { id: "diamond_hands", label: "Diamond-Hands" },
+  { id: "buy_high_sell_low", label: "Buy-High-Sell-Low" },
+  { id: "zodiac", label: "Sternzeichen-Trader" },
+  { id: "hash_sentiment", label: "Hash-Sentiment-Bot" },
 ]
 
 export function App() {
@@ -60,17 +78,17 @@ export function App() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {wallet?.usdt != null && (
+            {wallet?.usdt != null && wallet?.usdc != null && (
               <Badge variant="outline" className="gap-1.5 py-1.5">
-                Testnet spot wallet
-                <FlashValue value={wallet.usdt} className="font-mono tabular-nums">
-                  {formatUsdt(wallet.usdt)}
+                Demo spot wallet
+                <FlashValue value={wallet.usdt + wallet.usdc} className="font-mono tabular-nums">
+                  {formatUsdt(wallet.usdt + wallet.usdc)}
                 </FlashValue>
               </Badge>
             )}
             {futuresWallet?.usdt != null && futuresWallet?.usdc != null && (
               <Badge variant="outline" className="gap-1.5 py-1.5">
-                Futures demo wallet
+                Demo futures wallet
                 <FlashValue value={futuresWallet.usdt + futuresWallet.usdc} className="font-mono tabular-nums">
                   {formatUsdt(futuresWallet.usdt + futuresWallet.usdc)}
                 </FlashValue>

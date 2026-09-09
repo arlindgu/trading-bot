@@ -1,5 +1,6 @@
 """Broker that places REAL orders against an authenticated exchange account
-(Binance testnet by default) instead of simulating fills.
+(the spot side of Binance Demo Trading by default) instead of simulating
+fills.
 
 Same buy/sell/equity interface as PaperBroker (it subclasses it), so
 GridStrategy works against either unmodified. Only buy/sell differ: they
@@ -32,15 +33,27 @@ class ExchangeBroker(PaperBroker):
         api_secret: str,
         capital: float,
         quote_currency: str = "USDT",
-        testnet: bool = True,
+        demo: bool = True,
+        exchange: "ccxt.Exchange | None" = None,
     ):
         super().__init__(cash=capital, fee_pct=0.0, slippage_pct=0.0)
+        self.quote_currency = quote_currency
+
+        if exchange is not None:
+            # Shared, already-authenticated, already-load_markets()'d client
+            # (see cli/spot_fleet.py) -- every account in a fleet process
+            # already trades under the same real demo account/API key, so
+            # there is no reason for each account's broker to redo the
+            # network round trips (load_markets, fetch_wallet_balance) that
+            # constructing its own client from scratch would cost.
+            self.exchange = exchange
+            return
+
         exchange_class = getattr(ccxt, exchange_id)
         self.exchange = exchange_class({"apiKey": api_key, "secret": api_secret, "enableRateLimit": True})
-        if testnet:
-            self.exchange.set_sandbox_mode(True)
+        if demo:
+            self.exchange.enable_demo_trading(True)
         self.exchange.load_markets()  # needed for amount_to_precision below
-        self.quote_currency = quote_currency
 
         wallet_balance = self.fetch_wallet_balance()
         if wallet_balance < capital:

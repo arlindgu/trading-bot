@@ -1,0 +1,43 @@
+# Every account cli/spot_fleet.py runs, sharing ONE demo-account spot
+# wallet (see webapp/app.py's ACCOUNTS dict for the matching dashboard
+# labels). Every strategy gets exactly one account at 500 -- no staggered
+# budget tiers. 10 accounts on the USDT side (Grid + 9 real strategies) =
+# 5,000 of 5,000 real balance; 9 accounts on the USDC side (9 joke
+# strategies) = 4,500 of 5,000. The USDT side has zero buffer -- a
+# deliberate choice (exactly 500 per strategy, no more no less) accepted
+# knowing occasional self-healing "insufficient balance" order failures
+# are possible right at that boundary.
+#
+# Grid uses `configs` (one yaml per symbol -- its price range genuinely
+# differs per symbol). Every other strategy here uses `config` (ONE yaml,
+# with its own `symbols:` list) since their params don't vary by symbol.
+accounts:
+  - account: grid_500
+    configs: [config/grid_link_usdt.yaml, config/grid_tia_usdt.yaml, config/grid_dot_usdt.yaml,
+              config/grid_eth_usdt.yaml, config/grid_wif_usdt.yaml, config/grid_avax_usdt.yaml,
+              config/grid_sol_usdt.yaml, config/grid_arb_usdt.yaml]
+    total_cash: 500
+    risk_pct: 0.03
+
+  # 9 real (technical) strategies -- USDT side, 500 each (4,500 total, +
+  # grid's 500 = 5,000 of 5,000).
+  - {account: ma_crossover_500, config: config/ma_crossover.yaml, total_cash: 500}
+  - {account: donchian_breakout_500, config: config/donchian_breakout.yaml, total_cash: 500}
+  - {account: rsi_reversion_500, config: config/rsi_reversion.yaml, total_cash: 500}
+  - {account: bollinger_reversion_500, config: config/bollinger_reversion.yaml, total_cash: 500}
+  - {account: macd_momentum_500, config: config/macd_momentum.yaml, total_cash: 500}
+  - {account: atr_breakout_500, config: config/atr_breakout.yaml, total_cash: 500}
+  - {account: volume_spike_500, config: config/volume_spike.yaml, total_cash: 500}
+  - {account: relative_momentum_500, config: config/relative_momentum.yaml, total_cash: 500}
+  - {account: buy_and_hold_500, config: config/buy_and_hold.yaml, total_cash: 500}
+
+  # 9 joke strategies -- USDC side, 500 each (4,500 of 5,000).
+  - {account: moon_phase_500, config: config/moon_phase.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: friday13_500, config: config/friday13.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: prime_number_500, config: config/prime_number.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: contrarian_self_500, config: config/contrarian_self.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: fomo_bot_500, config: config/fomo_bot.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: diamond_hands_500, config: config/diamond_hands.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: buy_high_sell_low_500, config: config/buy_high_sell_low.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: zodiac_500, config: config/zodiac.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: hash_sentiment_500, config: config/hash_sentiment.yaml, total_cash: 500, quote_currency: USDC}

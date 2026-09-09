@@ -8,6 +8,7 @@ import ccxt
 import pandas as pd
 
 from tradingbot.config import DATA_DIR
+from tradingbot.core.types import Bar
 
 MAX_BARS_PER_CALL = 1000
 
@@ -71,3 +72,25 @@ def fetch_recent(symbol: str, timeframe: str, bars: int, exchange_id: str = "bin
     df = pd.DataFrame(batch, columns=["timestamp", "open", "high", "low", "close", "volume"])
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
     return df
+
+
+def fetch_latest_bars(
+    symbol_timeframes: set[tuple[str, str]], exchange_id: str = "binance", bars: int = 5
+) -> dict[tuple[str, str], Bar]:
+    """Fetch the latest bar for each unique (symbol, timeframe) pair once --
+    used by cli/spot_fleet.py and cli/futures_fleet.py to fetch each symbol
+    exactly once per poll cycle and share the result across every account
+    trading that symbol, instead of one redundant fetch per account (this
+    endpoint is public/unauthenticated, so the dedup is safe regardless of
+    which real account each broker is trading under)."""
+    exchange = _make_exchange(exchange_id)
+    result: dict[tuple[str, str], Bar] = {}
+    for symbol, timeframe in symbol_timeframes:
+        batch = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=bars)
+        if not batch:
+            continue
+        row = batch[-1]
+        result[(symbol, timeframe)] = Bar(
+            pd.to_datetime(row[0], unit="ms", utc=True), row[1], row[2], row[3], row[4], row[5]
+        )
+    return result
