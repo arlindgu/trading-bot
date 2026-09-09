@@ -2,8 +2,8 @@
 # wallet (see webapp/app.py's ACCOUNTS dict for the matching dashboard
 # labels). Every strategy gets exactly one account at 500 -- no staggered
 # budget tiers. 10 accounts on the USDT side (Grid + 9 real strategies) =
-# 5,000 of 5,000 real balance; 9 accounts on the USDC side (9 joke
-# strategies) = 4,500 of 5,000. The USDT side has zero buffer -- a
+# 5,000 of 5,000 real balance; 10 accounts on the USDC side (10 joke
+# strategies) = 5,000 of 5,000. Both sides have zero buffer -- a
 # deliberate choice (exactly 500 per strategy, no more no less) accepted
 # knowing occasional self-healing "insufficient balance" order failures
 # are possible right at that boundary.
@@ -31,7 +31,7 @@ accounts:
   - {account: relative_momentum_500, config: config/relative_momentum.yaml, total_cash: 500}
   - {account: buy_and_hold_500, config: config/buy_and_hold.yaml, total_cash: 500}
 
-  # 9 joke strategies -- USDC side, 500 each (4,500 of 5,000).
+  # 10 joke strategies -- USDC side, 500 each (5,000 of 5,000).
   - {account: moon_phase_500, config: config/moon_phase.yaml, total_cash: 500, quote_currency: USDC}
   - {account: friday13_500, config: config/friday13.yaml, total_cash: 500, quote_currency: USDC}
   - {account: prime_number_500, config: config/prime_number.yaml, total_cash: 500, quote_currency: USDC}
@@ -41,3 +41,4 @@ accounts:
   - {account: buy_high_sell_low_500, config: config/buy_high_sell_low.yaml, total_cash: 500, quote_currency: USDC}
   - {account: zodiac_500, config: config/zodiac.yaml, total_cash: 500, quote_currency: USDC}
   - {account: hash_sentiment_500, config: config/hash_sentiment.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: zappelphilipp_500, config: config/zappelphilipp.yaml, total_cash: 500, quote_currency: USDC}

@@ -19,6 +19,7 @@ from tradingbot.strategies.prime_number import PrimeNumberConfig, PrimeNumberStr
 from tradingbot.strategies.relative_momentum import RelativeMomentumConfig, RelativeMomentumStrategy
 from tradingbot.strategies.rsi_reversion import RsiReversionConfig, RsiReversionStrategy
 from tradingbot.strategies.volume_spike import VolumeSpikeConfig, VolumeSpikeStrategy
+from tradingbot.strategies.zappelphilipp import ZappelphilippConfig, ZappelphilippStrategy
 from tradingbot.strategies.zodiac import ZodiacConfig, ZodiacStrategy
 
 # Registry a new strategy joins by adding one line here -- CLI scripts and
@@ -43,6 +44,7 @@ STRATEGIES: dict[str, tuple[type, type[Strategy]]] = {
     "buy_high_sell_low": (BuyHighSellLowConfig, BuyHighSellLowStrategy),
     "zodiac": (ZodiacConfig, ZodiacStrategy),
     "hash_sentiment": (HashSentimentConfig, HashSentimentStrategy),
+    "zappelphilipp": (ZappelphilippConfig, ZappelphilippStrategy),
 }
 
 

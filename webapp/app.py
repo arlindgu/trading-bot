@@ -87,6 +87,7 @@ ACCOUNTS = {
     "buy_high_sell_low_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "buy_high_sell_low"},
     "zodiac_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "zodiac"},
     "hash_sentiment_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "hash_sentiment"},
+    "zappelphilipp_500": {"label": "500 USDC", "starting_cash": 500.0, "strategy": "zappelphilipp"},
 }
 DEFAULT_ACCOUNT = "grid_500"
 

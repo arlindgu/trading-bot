@@ -161,7 +161,7 @@ account per strategy instead):
 
 - **Spot pool (USDT)**: Grid + the 9 real strategies = 10 accounts x 500 =
   5,000 of 5,000 -- exactly at the boundary, zero buffer, by choice.
-- **Spot pool (USDC)**: the 9 joke strategies = 9 accounts x 500 = 4,500 of 5,000.
+- **Spot pool (USDC)**: the 10 joke strategies = 10 accounts x 500 = 5,000 of 5,000 -- also zero buffer.
 - **Futures pool (USDT / USDC)**: one Coinflip account per margin asset x
   500 = 500 of 5,000 each.
 
@@ -232,7 +232,7 @@ at one trade for its whole lifetime.
 | Relative Momentum | Long when N-bar return is positive and accelerating |
 | Buy & Hold | Buys once (well, up to `max_concurrent`), never sells -- the benchmark |
 
-## Joke strategies (10, including Coinflip)
+## Joke strategies (11, including Coinflip)
 
 Also spot side of the demo account (Coinflip is the only leveraged/futures
 strategy) -- for laughs, but each still writes a short, human-readable tag
@@ -259,6 +259,7 @@ which a spot ledger can't represent -- so this is the one strategy on
 | Buy-High-Sell-Low | Chases new highs, panic-sells on the next red candle |
 | Sternzeichen-Trader | Long/flat by a fixed table keyed on the zodiac sign |
 | Hash-Sentiment-Bot | Pretends to read sentiment, actually hashes the bar's own OHLCV |
+| Zappelphilipp | Closes every 1-minute candle, coinflips whether to reopen -- high velocity |
 
 ```bash
 # .env needs BINANCE_DEMO_KEY / _SECRET (from demo.binance.com)

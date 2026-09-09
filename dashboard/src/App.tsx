@@ -37,6 +37,7 @@ const STRATEGIES: { id: StrategyId; label: string; description: string }[] = [
   { id: "buy_high_sell_low", label: "Buy-High-Sell-Low", description: "Chases fresh highs and panic-sells on the next red candle -- deliberately bad timing." },
   { id: "zodiac", label: "Sternzeichen-Trader", description: "Long or flat purely based on which zodiac sign the current date falls under." },
   { id: "hash_sentiment", label: "Hash-Sentiment-Bot", description: "Pretends to read crowd sentiment, actually just hashes the candle's own OHLCV data." },
+  { id: "zappelphilipp", label: "Zappelphilipp", description: "Can't sit still -- closes every 1-minute candle, then coinflips whether to reopen." },
 ]
 
 export function App() {
@@ -95,8 +96,8 @@ export function App() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Select value={strategy} onValueChange={(value) => value && setStrategy(value as StrategyId)}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
+              <SelectTrigger className="w-[260px]">
+                <SelectValue>{(value: StrategyId) => STRATEGIES.find((s) => s.id === value)?.label ?? value}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -111,8 +112,8 @@ export function App() {
 
             {accountsForStrategy.length > 1 && account && (
               <Select value={account} onValueChange={(value) => value && setAccount(value)}>
-                <SelectTrigger className="w-[170px]">
-                  <SelectValue />
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue>{(value: string) => accountsForStrategy.find((a) => a.id === value)?.label ?? value}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>

@@ -74,6 +74,7 @@ export type StrategyId =
   | "buy_high_sell_low"
   | "zodiac"
   | "hash_sentiment"
+  | "zappelphilipp"
 
 export interface Account {
   id: string
