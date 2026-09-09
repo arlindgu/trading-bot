@@ -75,6 +75,12 @@ export type StrategyId =
   | "zodiac"
   | "hash_sentiment"
   | "zappelphilipp"
+  | "rsi_scalp"
+  | "ema_scalp"
+  | "momentum_scalp"
+  | "candle_reversal"
+  | "adrenaline_junkie"
+  | "panic_bot"
 
 export interface Account {
   id: string

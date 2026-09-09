@@ -167,8 +167,10 @@ account per strategy instead):
 - **Spot pool (USDT)**: Grid + the 9 real strategies = 10 accounts x 500 =
   5,000 of 5,000 -- exactly at the boundary, zero buffer, by choice.
 - **Spot pool (USDC)**: the 10 joke strategies = 10 accounts x 500 = 5,000 of 5,000 -- also zero buffer.
-- **Futures pool (USDT / USDC)**: one Coinflip account per margin asset x
-  500 = 500 of 5,000 each.
+- **Futures pool (USDT)**: Coinflip-USDT + 4 real high-frequency scalps =
+  5 accounts x 500 = 2,500 of 5,000.
+- **Futures pool (USDC)**: Coinflip-USDC + 2 joke high-frequency scalps =
+  3 accounts x 500 = 1,500 of 5,000.
 
 ```bash
 cp .env.example .env   # fill in BINANCE_DEMO_KEY / _SECRET (from demo.binance.com)
@@ -228,13 +230,14 @@ On a Raspberry Pi: same commands, just `git pull` + `docker compose up -d
 --build` again to deploy an update. Port-forwarding/domain/TLS on top of
 port 8080 is on you.
 
-## Real strategies (10, including Grid)
+## Real strategies (14, including Grid)
 
-All long/flat, spot side of the demo account, built on `SingleLotStrategy`
-(except Grid, which has its own slot-indexed shape). Each can hold several
-concurrent lots on a symbol (accumulated across separate candles while its
-signal stays true, closed together once it flips) instead of being capped
-at one trade for its whole lifetime.
+All spot side of the demo account except the 4 high-frequency ones (see
+below), built on `SingleLotStrategy` (except Grid, which has its own
+slot-indexed shape). Each can hold several concurrent lots on a symbol
+(accumulated across separate candles while its signal stays true, closed
+together once it flips) instead of being capped at one trade for its
+whole lifetime.
 
 | Strategy | Idea |
 |---|---|
@@ -249,7 +252,20 @@ at one trade for its whole lifetime.
 | Relative Momentum | Long when N-bar return is positive and accelerating |
 | Buy & Hold | Buys once (well, up to `max_concurrent`), never sells -- the benchmark |
 
-## Joke strategies (11, including Coinflip)
+**High-frequency (futures, 1-minute bars)**: these 4 run on
+`tradingbot/strategies/futures_single_lot.py`'s `FuturesSingleLotStrategy`
+base instead -- long OR short (single direction at a time, flips instead of
+going flat in between for 3 of the 4), real leverage, same restart-safety/
+tag-prefix pattern as the spot base.
+
+| Strategy | Idea |
+|---|---|
+| RSI Scalp | Long under RSI 20, short over 80, exits back through 50 |
+| EMA Scalp | Always in a position, long/short by fast/slow EMA, flips on cross |
+| Momentum Scalp | Long/short by the sign of recent momentum, flips fast |
+| Candle Reversal | Fades the last candle's color, holds 1 bar, closes+refades on the next |
+
+## Joke strategies (13, including Coinflip)
 
 Also spot side of the demo account (Coinflip is the only leveraged/futures
 strategy) -- for laughs, but each still writes a short, human-readable tag
@@ -276,7 +292,25 @@ which a spot ledger can't represent -- so this is the one strategy on
 | Buy-High-Sell-Low | Chases new highs, panic-sells on the next red candle |
 | Sternzeichen-Trader | Long/flat by a fixed table keyed on the zodiac sign |
 | Hash-Sentiment-Bot | Pretends to read sentiment, actually hashes the bar's own OHLCV |
-| Zappelphilipp | Closes every 1-minute candle, coinflips whether to reopen -- high velocity |
+
+**High-frequency (futures, 1-minute bars)**, same `FuturesSingleLotStrategy`
+base as the real scalps above:
+
+| Strategy | Idea |
+|---|---|
+| Zappelphilipp | Closes every 1-minute candle, coinflips whether to reopen |
+| Adrenaline-Junkie | Flips side every single candle at a random leverage, never sits still |
+| Panic-Bot | Random direction, panics and flips on the smallest adverse tick |
+
+`tradingbot/core/futures_broker.py`'s `FuturesPosition`/`open_position` take
+a `strategy:` name that becomes the tag prefix (default `"coinflip"` for
+backwards compatibility) -- every non-Coinflip futures strategy passes its
+own name so the dashboard's generic Info column picks it up instead of the
+Coinflip-specific Side/Lev columns. `cli/futures_fleet.py`'s
+`FUTURES_STRATEGIES` registry is the futures-side equivalent of
+`tradingbot/strategies/__init__.py`'s `STRATEGIES` dict -- add a new futures
+strategy there, then give it an account in `config/fleet_futures.yaml` with
+a `strategy:`/`timeframe:`/`params:` (passed straight through as kwargs).
 
 ```bash
 # .env needs BINANCE_DEMO_KEY / _SECRET (from demo.binance.com)

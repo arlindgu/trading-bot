@@ -40,6 +40,7 @@ class FuturesPosition:
         margin: float,
         tp_pct: float | None = None,
         sl_pct: float | None = None,
+        strategy: str = "coinflip",
     ):
         self.lot_id = lot_id
         self.symbol = symbol
@@ -51,10 +52,14 @@ class FuturesPosition:
         self.margin = margin  # capital committed as collateral for this position
         self.tp_pct = tp_pct
         self.sl_pct = sl_pct
+        # `strategy` is the tag prefix, not just cosmetic -- webapp/app.py's
+        # `_coinflip_info` only renders the structured Side/Lev columns for
+        # tags starting "coinflip:"; every other futures strategy falls
+        # through to the generic Info column via its own prefix instead.
         if tp_pct is not None and sl_pct is not None:
-            self.tag = f"coinflip:{side}:{leverage}:tp{tp_pct}:sl{sl_pct}"
+            self.tag = f"{strategy}:{side}:{leverage}:tp{tp_pct}:sl{sl_pct}"
         else:
-            self.tag = f"coinflip:{side}:{leverage}"
+            self.tag = f"{strategy}:{side}:{leverage}"
 
 
 class FuturesBroker:
@@ -99,6 +104,7 @@ class FuturesBroker:
         timestamp,
         tp_pct: float | None = None,
         sl_pct: float | None = None,
+        strategy: str = "coinflip",
     ) -> str | None:
         try:
             self.exchange.set_leverage(leverage, symbol)
@@ -124,7 +130,7 @@ class FuturesBroker:
 
         lot_id = f"{symbol.replace('/', '')}-{next(self._lot_counter)}"
         position = FuturesPosition(
-            lot_id, symbol, side, leverage, fill_price, filled_qty, str(timestamp), margin, tp_pct, sl_pct
+            lot_id, symbol, side, leverage, fill_price, filled_qty, str(timestamp), margin, tp_pct, sl_pct, strategy
         )
         self.positions[lot_id] = position
         self.cash -= margin
