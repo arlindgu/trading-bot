@@ -76,7 +76,12 @@ class SymbolSnapshotRow(Base):
 
 def get_session_factory(db_path: Path) -> sessionmaker:
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-    engine = create_engine(f"sqlite:///{db_path}")
+    # pool_size/max_overflow well above the default (5+10=15): the fleet
+    # processes (cli/spot_fleet.py, cli/futures_fleet.py) hold one Session
+    # per account for the process's whole lifetime, not one-per-request
+    # like webapp's scoped_session -- with 20+ accounts sharing one engine,
+    # the default pool was exhausted before every account finished loading.
+    engine = create_engine(f"sqlite:///{db_path}", pool_size=50, max_overflow=0)
     # WAL instead of the default rollback journal: readers (the dashboard)
     # don't block writers (the bot processes), and it's far more resilient
     # to a process being killed mid-write -- the default journal mode
