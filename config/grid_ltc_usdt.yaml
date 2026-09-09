@@ -1,0 +1,19 @@
+# Grid trading auf LTC/USDT (Binance, oeffentliche Daten, kein Live-Handel).
+strategy: grid
+symbol: LTC/USDT
+exchange: binance
+timeframe: 1h
+lookback_days: 3500  # volle verfuegbare Binance-Historie
+
+# Preisspanne, die das Grid abdeckt. LTC schwankte in der gesamten Historie
+# zwischen ca. 22.32 und 413.49 (aktuell ~54.8) -- Range deckt das mit Puffer ab.
+lower_price: 20
+upper_price: 450
+num_grids: 20
+geometric: true  # geometrische Abstaende = gleiche %-Schritte, besser fuer breite Crypto-Ranges
+
+risk_pct_per_grid: 0.01
+fee_pct: 0.001
+slippage_pct: 0.0005
+
+initial_cash: 500

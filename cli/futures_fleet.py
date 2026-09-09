@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import ccxt
 from dotenv import load_dotenv
 
-from tradingbot.config import STATE_DIR, load_yaml
+from tradingbot.config import STATE_DIR, load_symbols, load_yaml
 from tradingbot.core import db
 from tradingbot.core.coinflip_live import run_once
 from tradingbot.core.db import CashBalanceRow
@@ -41,14 +41,17 @@ def futures_symbol(spot_symbol: str, margin_asset: str, markets: dict) -> str | 
 class FuturesAccount:
     def __init__(
         self, account: str, margin_asset: str, leverage: list[int], margin_pct: float, total_cash: float,
-        symbols: list[str], max_concurrent: int = 3,
+        max_concurrent: int = 3,
     ):
         self.account = account
         self.margin_asset = margin_asset
         self.leverage = leverage
         self.margin_pct = margin_pct
         self.total_cash = total_cash
-        self.input_symbols = symbols
+        # config/symbols.yaml's "usdt" list -- just the base names to feed
+        # futures_symbol(), which converts to whichever margin market this
+        # account actually trades. Same list regardless of margin_asset.
+        self.input_symbols = load_symbols()["usdt"]
         self.max_concurrent = max_concurrent
         self.strategies: dict[str, CoinflipStrategy] = {}
         self.broker: FuturesBroker | None = None
@@ -75,7 +78,7 @@ def load_fleet(fleet_config_path: str) -> list[FuturesAccount]:
     return [
         FuturesAccount(
             account=entry["account"], margin_asset=entry["margin_asset"], leverage=list(entry["leverage"]),
-            margin_pct=float(entry["margin_pct"]), total_cash=float(entry["total_cash"]), symbols=list(entry["symbols"]),
+            margin_pct=float(entry["margin_pct"]), total_cash=float(entry["total_cash"]),
             max_concurrent=int(entry.get("max_concurrent", 3)),
         )
         for entry in raw["accounts"]

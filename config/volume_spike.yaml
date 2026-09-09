@@ -6,4 +6,3 @@ slippage_pct: 0.0005
 volume_period: 20
 spike_multiplier: 2.0
 position_pct: 0.12
-symbols: [LINK/USDT, TIA/USDT, DOT/USDT, ETH/USDT, WIF/USDT, AVAX/USDT, SOL/USDT, ARB/USDT]

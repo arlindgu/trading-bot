@@ -8,14 +8,14 @@
 # knowing occasional self-healing "insufficient balance" order failures
 # are possible right at that boundary.
 #
-# Grid uses `configs` (one yaml per symbol -- its price range genuinely
-# differs per symbol). Every other strategy here uses `config` (ONE yaml,
-# with its own `symbols:` list) since their params don't vary by symbol.
+# Grid uses `configs: auto` (one hand-calibrated yaml per symbol -- its
+# price range genuinely differs per symbol -- derived from
+# config/symbols.yaml, skipping any symbol without a config/grid_<slug>_usdt.yaml
+# yet). Every other strategy here uses `config` (ONE yaml shared by every
+# symbol); the symbol list itself always comes from config/symbols.yaml.
 accounts:
   - account: grid_500
-    configs: [config/grid_link_usdt.yaml, config/grid_tia_usdt.yaml, config/grid_dot_usdt.yaml,
-              config/grid_eth_usdt.yaml, config/grid_wif_usdt.yaml, config/grid_avax_usdt.yaml,
-              config/grid_sol_usdt.yaml, config/grid_arb_usdt.yaml]
+    configs: auto
     total_cash: 500
     risk_pct: 0.03
 

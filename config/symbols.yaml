@@ -1,0 +1,10 @@
+# Single source of truth for which symbols every bot trades. Change the
+# list here and every strategy (real, joke, and coinflip) picks it up
+# automatically -- nothing else needs editing. Grid is the one exception:
+# it still needs a hand-calibrated config/grid_<slug>_usdt.yaml per symbol
+# (its price range genuinely differs per symbol), but the list of WHICH
+# symbols to look for those files under is still driven from here.
+usdt: [LINK/USDT, TIA/USDT, DOT/USDT, ETH/USDT, WIF/USDT, AVAX/USDT, SOL/USDT, ARB/USDT,
+       BTC/USDT, XRP/USDT, DOGE/USDT, ADA/USDT, SUI/USDT, BNB/USDT, UNI/USDT, LTC/USDT]
+usdc: [LINK/USDC, TIA/USDC, DOT/USDC, ETH/USDC, WIF/USDC, AVAX/USDC, SOL/USDC, ARB/USDC,
+       BTC/USDC, XRP/USDC, DOGE/USDC, ADA/USDC, SUI/USDC, BNB/USDC, UNI/USDC, LTC/USDC]

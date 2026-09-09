@@ -55,9 +55,10 @@ cli/
   spot_fleet.py          # PRODUCTION: every spot-side account in one process, see "Fleet processes"
   futures_fleet.py       # PRODUCTION: every coinflip account in one process
 config/
+  symbols.yaml             # single source of truth for which symbols every bot trades
   grid_btc_usdt.yaml       # legacy single-symbol quickstart config
   grid_<coin>_usdt.yaml    # per-symbol grid configs (price range genuinely differs per symbol)
-  <strategy>.yaml          # one shared config per non-grid strategy, with its own symbols: list
+  <strategy>.yaml          # one shared config per non-grid strategy (no symbols: list -- always from symbols.yaml)
   fleet_spot.yaml          # every spot_fleet.py account: {account, config(s), total_cash, ...}
   fleet_futures.yaml       # every futures_fleet.py account
 tests/
@@ -78,11 +79,15 @@ tests/
    in a generic "Info" column with zero extra UI code.
 2. Register it in `tradingbot/strategies/__init__.py`:
    `STRATEGIES["my_strategy"] = (MyConfig, MyStrategy)`.
-3. Add `config/my_strategy.yaml` with `strategy: my_strategy`, your config
-   fields, and a `symbols:` list (one shared file for every symbol, since
-   params usually don't vary per symbol -- see any existing non-grid config).
-   Grid is the exception: its price range genuinely differs per symbol, so
-   it still uses one yaml file per symbol (`configs:` list, not `config:`).
+3. Add `config/my_strategy.yaml` with `strategy: my_strategy` and your config
+   fields -- no `symbols:` list needed, `cli/spot_fleet.py` resolves the
+   symbol list for you from `config/symbols.yaml` based on the account's
+   `quote_currency` (one shared file for every symbol, since params usually
+   don't vary per symbol -- see any existing non-grid config). Grid is the
+   exception: its price range genuinely differs per symbol, so it still
+   uses one hand-calibrated yaml file per symbol (`configs: auto` in
+   `fleet_spot.yaml`, which looks for `config/grid_<slug>_usdt.yaml` per
+   symbol in `config/symbols.yaml`, skipping any that doesn't exist yet).
 4. Write `tests/test_my_strategy.py` -- construct the strategy directly, feed
    it hand-built `Bar`s and a fresh `PaperBroker`, assert on
    `broker.positions` / `broker.trade_log`. No mocking needed since the
@@ -193,6 +198,18 @@ it doesn't care whether one process or twenty wrote a given account's rows.
 `cli/portfolio_paper_trade.py` and `cli/coinflip_trade.py` (single-account)
 still exist for local debugging/manual runs -- `docker-compose.yml` just
 doesn't use them anymore.
+
+**Symbol universe**: `config/symbols.yaml` is the single source of truth
+for which symbols every bot trades (16, as of writing -- LINK, TIA, DOT,
+ETH, WIF, AVAX, SOL, ARB, BTC, XRP, DOGE, ADA, SUI, BNB, UNI, LTC). Change
+the list there and `cli/spot_fleet.py`/`cli/futures_fleet.py` pick it up
+for every account automatically -- no strategy yaml repeats its own symbol
+list. The one exception is Grid, since its price range genuinely differs
+per symbol: adding a symbol there also needs a hand-calibrated
+`config/grid_<slug>_usdt.yaml` (real historical high/low + a buffer, see
+any existing one for the pattern) -- `configs: auto` in `fleet_spot.yaml`
+picks up whichever of those files exist and skips the rest, so Grid can
+lag behind the other strategies on a brand new symbol without crashing.
 
 ## Running with Docker
 

@@ -4,4 +4,3 @@ timeframe: 1m
 fee_pct: 0.001
 slippage_pct: 0.0005
 position_pct: 0.15
-symbols: [LINK/USDC, TIA/USDC, DOT/USDC, ETH/USDC, WIF/USDC, AVAX/USDC, SOL/USDC, ARB/USDC]

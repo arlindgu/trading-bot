@@ -10,7 +10,6 @@ accounts:
     margin_pct: 0.03
     max_concurrent: 3
     total_cash: 500
-    symbols: [LINK/USDT, TIA/USDT, DOT/USDT, ETH/USDT, WIF/USDT, AVAX/USDT, SOL/USDT, ARB/USDT]
 
   - account: coinflip_usdc_500
     margin_asset: USDC
@@ -18,4 +17,3 @@ accounts:
     margin_pct: 0.03
     max_concurrent: 3
     total_cash: 500
-    symbols: [LINK/USDT, TIA/USDT, DOT/USDT, ETH/USDT, WIF/USDT, AVAX/USDT, SOL/USDT, ARB/USDT]

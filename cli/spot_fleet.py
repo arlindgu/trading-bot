@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import ccxt
 from dotenv import load_dotenv
 
-from tradingbot.config import ROOT, STATE_DIR, load_yaml
+from tradingbot.config import ROOT, STATE_DIR, load_symbols, load_yaml
 from tradingbot.core import db
 from tradingbot.core.db import CashBalanceRow
 from tradingbot.core.exchange_broker import ExchangeBroker
@@ -41,27 +41,41 @@ class SpotAccount:
         total_cash: float,
         overrides: dict,
         quote_currency: str,
-        configs: list[str] | None = None,
+        configs: list[str] | str | None = None,
         config: str | None = None,
     ):
         """Two ways to define an account's per-symbol configs:
         - `configs`: one yaml path per symbol (grid's style -- needed since
-          grid's price range genuinely differs per symbol).
-        - `config`: ONE yaml path shared by every symbol in its own
-          `symbols:` list (every other strategy here -- their params don't
-          vary by symbol, so one file + a symbol list beats 8 near-duplicate
-          files).
+          grid's price range genuinely differs per symbol). Pass the
+          literal string "auto" to derive the list from config/symbols.yaml
+          instead of enumerating paths by hand -- config/grid_<slug>_usdt.yaml
+          per symbol, skipping any that doesn't exist yet (not every symbol
+          has a hand-calibrated grid range).
+        - `config`: ONE yaml path shared by every symbol (every other
+          strategy here -- their params don't vary by symbol). The symbol
+          list itself always comes from config/symbols.yaml, keyed by this
+          account's `quote_currency` -- never repeated per strategy file.
         """
         self.account = account
         self.quote_currency = quote_currency
         self.strategies = {}
         self.timeframe = self.exchange_id = None
 
+        if configs == "auto":
+            configs = []
+            for symbol in load_symbols()["usdt"]:  # grid is USDT-only by convention
+                slug = symbol.split("/")[0].lower()
+                path = f"config/grid_{slug}_usdt.yaml"
+                if (ROOT / path).exists():
+                    configs.append(path)
+                else:
+                    print(f"[skip] {account}: no grid config for {symbol} yet ({path})")
+
         if configs is not None:
             raw_configs = [dict(load_yaml(ROOT / path)) for path in configs]
         else:
             shared = dict(load_yaml(ROOT / config))
-            symbols = shared.pop("symbols")
+            symbols = load_symbols()[quote_currency.lower()]
             raw_configs = [dict(shared, symbol=symbol) for symbol in symbols]
 
         for raw in raw_configs:

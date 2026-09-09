@@ -1,0 +1,19 @@
+# Grid trading auf DOGE/USDT (Binance, oeffentliche Daten, kein Live-Handel).
+strategy: grid
+symbol: DOGE/USDT
+exchange: binance
+timeframe: 1h
+lookback_days: 3500  # volle verfuegbare Binance-Historie
+
+# Preisspanne, die das Grid abdeckt. DOGE schwankte in der gesamten Historie
+# zwischen ca. 0.0011 und 0.74 (aktuell ~0.092) -- Range deckt das mit Puffer ab.
+lower_price: 0.001
+upper_price: 0.85
+num_grids: 20
+geometric: true  # geometrische Abstaende = gleiche %-Schritte, besser fuer breite Crypto-Ranges
+
+risk_pct_per_grid: 0.01
+fee_pct: 0.001
+slippage_pct: 0.0005
+
+initial_cash: 500
