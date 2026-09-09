@@ -43,6 +43,11 @@ export interface Account {
   starting_cash: number
 }
 
+export interface WalletBalance {
+  usdt: number | null
+  error?: string
+}
+
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url)
   if (!res.ok) throw new Error(`${url} failed: ${res.status}`)
@@ -51,6 +56,10 @@ async function getJson<T>(url: string): Promise<T> {
 
 export function fetchAccounts(): Promise<Account[]> {
   return getJson("/api/accounts")
+}
+
+export function fetchWalletBalance(): Promise<WalletBalance> {
+  return getJson("/api/wallet_balance")
 }
 
 export function fetchStatus(account: string): Promise<StatusResponse> {

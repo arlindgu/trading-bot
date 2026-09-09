@@ -1,10 +1,13 @@
 import { useState } from "react"
 
 import { CoinCard } from "@/components/CoinCard"
+import { FlashValue } from "@/components/FlashValue"
 import { OverviewCard } from "@/components/OverviewCard"
+import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { fetchAccounts, fetchStatus } from "@/lib/api"
+import { fetchAccounts, fetchStatus, fetchWalletBalance } from "@/lib/api"
+import { formatUsdt } from "@/lib/format"
 import { usePolling } from "@/lib/usePolling"
 
 const POLL_MS = 30_000
@@ -12,6 +15,7 @@ const FALLBACK_ACCOUNT = "alts8_testnet_500"
 
 export function App() {
   const { data: accounts } = usePolling(fetchAccounts, 60_000)
+  const { data: wallet } = usePolling(fetchWalletBalance, 60_000)
   const [account, setAccount] = useState(FALLBACK_ACCOUNT)
   const { data: status, error } = usePolling(() => fetchStatus(account), POLL_MS, account)
 
@@ -28,17 +32,28 @@ export function App() {
             </p>
           </div>
 
-          {accounts && accounts.length > 1 && (
-            <Tabs value={account} onValueChange={(value) => setAccount(value as string)}>
-              <TabsList>
-                {accounts.map((a) => (
-                  <TabsTrigger key={a.id} value={a.id}>
-                    {a.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {wallet?.usdt != null && (
+              <Badge variant="outline" className="gap-1.5 py-1.5">
+                Real testnet wallet
+                <FlashValue value={wallet.usdt} className="font-mono tabular-nums">
+                  {formatUsdt(wallet.usdt)}
+                </FlashValue>
+              </Badge>
+            )}
+
+            {accounts && accounts.length > 1 && (
+              <Tabs value={account} onValueChange={(value) => setAccount(value as string)}>
+                <TabsList>
+                  {accounts.map((a) => (
+                    <TabsTrigger key={a.id} value={a.id}>
+                      {a.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
         </header>
 
         {error && (

@@ -5,16 +5,22 @@ trading state itself. Serves the built React dashboard as static files
 """
 from __future__ import annotations
 
+import os
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import ccxt
+from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, request, send_from_directory
 from sqlalchemy.orm import scoped_session
 
 from tradingbot.config import STATE_DIR
 from tradingbot.core import db
+
+load_dotenv()
 
 # Every account this dashboard can display, and how much starting capital
 # to compute Total PnL % against. Add an entry here for any new parallel
@@ -54,6 +60,30 @@ def _account() -> str:
 @app.route("/api/accounts")
 def accounts():
     return jsonify([{"id": account_id, **meta} for account_id, meta in ACCOUNTS.items()])
+
+
+# Real underlying testnet account balance, across all 5 bots -- cached so
+# the dashboard's ~30s polling (times however many people have it open)
+# doesn't add to the same account's Binance rate limit the bots already
+# compete for.
+_wallet_cache: dict = {"value": None, "fetched_at": 0.0}
+WALLET_CACHE_SECONDS = 60
+
+
+@app.route("/api/wallet_balance")
+def wallet_balance():
+    now = time.time()
+    if _wallet_cache["value"] is None or now - _wallet_cache["fetched_at"] > WALLET_CACHE_SECONDS:
+        api_key = os.environ.get("BINANCE_TESTNET_API_KEY")
+        api_secret = os.environ.get("BINANCE_TESTNET_API_SECRET")
+        if not api_key or not api_secret:
+            return jsonify({"usdt": None, "error": "no testnet API key configured"}), 200
+        exchange = ccxt.binance({"apiKey": api_key, "secret": api_secret, "enableRateLimit": True})
+        exchange.set_sandbox_mode(True)
+        balance = exchange.fetch_balance()
+        _wallet_cache["value"] = float(balance.get("free", {}).get("USDT", 0.0))
+        _wallet_cache["fetched_at"] = now
+    return jsonify({"usdt": _wallet_cache["value"]})
 
 
 @app.route("/api/status")
