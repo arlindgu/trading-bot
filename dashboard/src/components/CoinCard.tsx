@@ -48,6 +48,8 @@ export function CoinCard({
     })
   }, [positions, summary.mark_price])
 
+  const isCoinflip = sortedPositions.some((p) => p.coinflip != null)
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -120,8 +122,17 @@ export function CoinCard({
                 <TableRow>
                   <TableHead>Entry</TableHead>
                   <TableHead className="text-right">Size</TableHead>
-                  <TableHead className="text-right">Target</TableHead>
-                  <TableHead className="text-right">To go</TableHead>
+                  {isCoinflip ? (
+                    <>
+                      <TableHead className="text-right">Side</TableHead>
+                      <TableHead className="text-right">Lev</TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead className="text-right">Target</TableHead>
+                      <TableHead className="text-right">To go</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -138,12 +149,27 @@ export function CoinCard({
                       <TableCell className="text-right font-mono text-xs tabular-nums">
                         {position.size.toFixed(4)}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-xs tabular-nums">
-                        {position.target_price != null ? formatUsdt(position.target_price, { decimals: 4 }) : "–"}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground">
-                        {toGoPct != null ? `+${toGoPct.toFixed(2)}%` : "–"}
-                      </TableCell>
+                      {position.coinflip ? (
+                        <>
+                          <TableCell className="text-right">
+                            <Badge variant={position.coinflip.side === "long" ? "outline" : "secondary"}>
+                              {position.coinflip.side}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs tabular-nums">
+                            {position.coinflip.leverage}x
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell className="text-right font-mono text-xs tabular-nums">
+                            {position.target_price != null ? formatUsdt(position.target_price, { decimals: 4 }) : "–"}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground">
+                            {toGoPct != null ? `+${toGoPct.toFixed(2)}%` : "–"}
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   )
                 })}

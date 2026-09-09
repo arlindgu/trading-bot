@@ -43,15 +43,32 @@ def _target_price(tag: str, levels: list[float]) -> float | None:
         return None
     return levels[index + 1] if 0 <= index + 1 < len(levels) else None
 
-# Every account this dashboard can display, and how much starting capital
-# to compute Total PnL % against. Add an entry here for any new parallel
-# bot account (paper or testnet) that should be selectable in the UI.
+
+def _coinflip_info(tag: str) -> dict | None:
+    if not tag or not tag.startswith("coinflip:"):
+        return None
+    _, side, leverage = tag.split(":")
+    return {"side": side, "leverage": int(leverage)}
+
+# Every account this dashboard can display, grouped by which strategy runs
+# it, with how much starting capital to compute Total PnL % against. Add an
+# entry here for any new parallel bot account that should be selectable.
 ACCOUNTS = {
-    "alts8_testnet_500": {"label": "500 USDT", "starting_cash": 500.0},
-    "alts8_testnet_1000": {"label": "1,000 USDT", "starting_cash": 1000.0},
-    "alts8_testnet_2000": {"label": "2,000 USDT", "starting_cash": 2000.0},
-    "alts8_testnet_4000": {"label": "4,000 USDT", "starting_cash": 4000.0},
-    "alts8_testnet_8000": {"label": "8,000 USDT", "starting_cash": 8000.0},
+    "alts8_testnet_500": {"label": "500 USDT", "starting_cash": 500.0, "strategy": "grid"},
+    "alts8_testnet_1000": {"label": "1,000 USDT", "starting_cash": 1000.0, "strategy": "grid"},
+    "alts8_testnet_2000": {"label": "2,000 USDT", "starting_cash": 2000.0, "strategy": "grid"},
+    "alts8_testnet_4000": {"label": "4,000 USDT", "starting_cash": 4000.0, "strategy": "grid"},
+    "alts8_testnet_8000": {"label": "8,000 USDT", "starting_cash": 8000.0, "strategy": "grid"},
+    "coinflip_usdt_500": {"label": "500 USDT (1-5x)", "starting_cash": 500.0, "strategy": "coinflip"},
+    "coinflip_usdt_1000": {"label": "1,000 USDT (1-5x)", "starting_cash": 1000.0, "strategy": "coinflip"},
+    "coinflip_usdt_2000": {"label": "2,000 USDT (1-5x)", "starting_cash": 2000.0, "strategy": "coinflip"},
+    "coinflip_usdt_4000": {"label": "4,000 USDT (1-5x)", "starting_cash": 4000.0, "strategy": "coinflip"},
+    "coinflip_usdt_8000": {"label": "8,000 USDT (1-5x)", "starting_cash": 8000.0, "strategy": "coinflip"},
+    "coinflip_usdc_500": {"label": "500 USDC (1-20x)", "starting_cash": 500.0, "strategy": "coinflip"},
+    "coinflip_usdc_1000": {"label": "1,000 USDC (1-20x)", "starting_cash": 1000.0, "strategy": "coinflip"},
+    "coinflip_usdc_2000": {"label": "2,000 USDC (1-20x)", "starting_cash": 2000.0, "strategy": "coinflip"},
+    "coinflip_usdc_4000": {"label": "4,000 USDC (1-20x)", "starting_cash": 4000.0, "strategy": "coinflip"},
+    "coinflip_usdc_8000": {"label": "8,000 USDC (1-20x)", "starting_cash": 8000.0, "strategy": "coinflip"},
 }
 DEFAULT_ACCOUNT = "alts8_testnet_500"
 
@@ -105,6 +122,28 @@ def wallet_balance():
         _wallet_cache["value"] = float(balance.get("free", {}).get("USDT", 0.0))
         _wallet_cache["fetched_at"] = now
     return jsonify({"usdt": _wallet_cache["value"]})
+
+
+_futures_wallet_cache: dict = {"value": None, "fetched_at": 0.0}
+
+
+@app.route("/api/futures_wallet_balance")
+def futures_wallet_balance():
+    now = time.time()
+    if _futures_wallet_cache["value"] is None or now - _futures_wallet_cache["fetched_at"] > WALLET_CACHE_SECONDS:
+        api_key = os.environ.get("BINANCE_DEMO_FUTURES_KEY")
+        api_secret = os.environ.get("BINANCE_DEMO_FUTURES_SECRET")
+        if not api_key or not api_secret:
+            return jsonify({"usdt": None, "usdc": None, "error": "no futures demo API key configured"}), 200
+        exchange = ccxt.binanceusdm({"apiKey": api_key, "secret": api_secret, "enableRateLimit": True})
+        exchange.enable_demo_trading(True)
+        balance = exchange.fetch_balance()
+        _futures_wallet_cache["value"] = {
+            "usdt": float(balance.get("free", {}).get("USDT", 0.0)),
+            "usdc": float(balance.get("free", {}).get("USDC", 0.0)),
+        }
+        _futures_wallet_cache["fetched_at"] = now
+    return jsonify(_futures_wallet_cache["value"])
 
 
 @app.route("/api/status")
@@ -184,6 +223,7 @@ def symbol_positions(symbol: str):
         levels = []
     for p in positions:
         p["target_price"] = _target_price(p["tag"], levels) if levels else None
+        p["coinflip"] = _coinflip_info(p["tag"])
     return jsonify(positions)
 
 

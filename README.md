@@ -135,4 +135,35 @@ SQLite database:
 
 On a Raspberry Pi: same commands, just `git pull` + `docker compose up -d
 --build` again to deploy an update. Port-forwarding/domain/TLS on top of
-port 8080 is on you.
+port 8080 is on you. `docker-compose.yml` runs 5 grid bots (staggered
+500/1k/2k/4k/8k budgets) + 10 coinflip bots (see below) + `webapp` -- edit
+or comment out services there to run fewer.
+
+## Coinflip strategy (for laughs)
+
+`tradingbot/strategies/coinflip.py`: every new candle, flip a coin for
+long/short and a coin for leverage; while a position is open, flip a coin
+each new candle whether to close it. No signal, no edge -- a benchmark for
+"what does doing nothing smarter than chance look like", running real
+long/short positions with real leverage.
+
+Real long/short + leverage needs futures, which a spot ledger can't
+represent -- so this uses `tradingbot/core/futures_broker.py`
+(`FuturesBroker`) against Binance USDT-M Futures **Demo Trading**
+(demo.binance.com; the older futures testnet sandbox mode is deprecated),
+not `PaperBroker`/`ExchangeBroker`. Same self-tracked-budget principle as
+`ExchangeBroker`: `--total-cash` caps what a bot uses of the demo account's
+real balance, independent of the account's actual size.
+
+```bash
+# .env needs BINANCE_DEMO_FUTURES_KEY / _SECRET (from demo.binance.com)
+python cli/coinflip_trade.py --account coinflip_usdt_500 --total-cash 500 \
+    --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 \
+    LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+```
+
+`--margin-asset` picks which futures market to trade (e.g. `USDT` -> the
+`LINK/USDT:USDT` perpetual, `USDC` -> `LINK/USDC:USDC`) -- a symbol with no
+market in that margin asset (DOT has no USDC perpetual) is skipped, not
+fatal. The dashboard's strategy dropdown (Grid / Coinflip) switches between
+them; each budget tier is its own account/ledger.

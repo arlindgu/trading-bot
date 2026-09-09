@@ -37,6 +37,11 @@ export interface Trade {
   pnl: number | null
 }
 
+export interface CoinflipInfo {
+  side: "long" | "short"
+  leverage: number
+}
+
 export interface OpenPosition {
   lot_id: string
   size: number
@@ -44,16 +49,26 @@ export interface OpenPosition {
   entry_time: string
   tag: string
   target_price: number | null
+  coinflip: CoinflipInfo | null
 }
+
+export type StrategyId = "grid" | "coinflip"
 
 export interface Account {
   id: string
   label: string
   starting_cash: number
+  strategy: StrategyId
 }
 
 export interface WalletBalance {
   usdt: number | null
+  error?: string
+}
+
+export interface FuturesWalletBalance {
+  usdt: number | null
+  usdc: number | null
   error?: string
 }
 
@@ -69,6 +84,10 @@ export function fetchAccounts(): Promise<Account[]> {
 
 export function fetchWalletBalance(): Promise<WalletBalance> {
   return getJson("/api/wallet_balance")
+}
+
+export function fetchFuturesWalletBalance(): Promise<FuturesWalletBalance> {
+  return getJson("/api/futures_wallet_balance")
 }
 
 export function fetchStatus(account: string): Promise<StatusResponse> {

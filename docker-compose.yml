@@ -56,6 +56,81 @@ services:
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
       config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
 
+  # Coinflip strategy: real long/short + leverage via Binance Futures Demo
+  # Trading, purely random entries/exits (see tradingbot/strategies/coinflip.py).
+  # Two groups sharing the same demo account: USDT-margined with moderate
+  # leverage (1-5x), USDC-margined with chaotic leverage (1-20x) -- DOT has
+  # no USDC perpetual, so those 5 bots trade the other 7 symbols.
+  coinflip-usdt-500:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdt_500 --total-cash 500
+      --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdt-1000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdt_1000 --total-cash 1000
+      --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdt-2000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdt_2000 --total-cash 2000
+      --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdt-4000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdt_4000 --total-cash 4000
+      --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdt-8000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdt_8000 --total-cash 8000
+      --margin-asset USDT --leverage 1,2,3,5 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdc-500:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdc_500 --total-cash 500
+      --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdc-1000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdc_1000 --total-cash 1000
+      --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdc-2000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdc_2000 --total-cash 2000
+      --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdc-4000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdc_4000 --total-cash 4000
+      --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
+  coinflip-usdc-8000:
+    <<: *bot-base
+    command: >
+      python -u cli/coinflip_trade.py --account coinflip_usdc_8000 --total-cash 8000
+      --margin-asset USDC --leverage 1,2,3,5,10,20 --margin-pct 0.03 --poll-seconds 300
+      LINK/USDT TIA/USDT DOT/USDT ETH/USDT WIF/USDT AVAX/USDT SOL/USDT ARB/USDT
+
   webapp:
     build: .
     command: gunicorn -w 2 -b 0.0.0.0:8080 webapp.app:app
@@ -71,3 +146,13 @@ services:
       - bot-2000
       - bot-4000
       - bot-8000
+      - coinflip-usdt-500
+      - coinflip-usdt-1000
+      - coinflip-usdt-2000
+      - coinflip-usdt-4000
+      - coinflip-usdt-8000
+      - coinflip-usdc-500
+      - coinflip-usdc-1000
+      - coinflip-usdc-2000
+      - coinflip-usdc-4000
+      - coinflip-usdc-8000

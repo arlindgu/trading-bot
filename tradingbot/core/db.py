@@ -106,6 +106,27 @@ def restore_positions(broker, session: Session, account: str) -> None:
     ).scalar_one()
 
 
+def restore_futures_positions(broker, session: Session, account: str) -> None:
+    """Same idea as `restore_positions`, but for FuturesBroker: positions
+    are keyed by symbol (not lot id) and carry side/leverage/margin that
+    live only in the trade tag (`coinflip:<side>:<leverage>`) and the
+    persisted notional (size * entry_price), not as their own DB columns.
+    """
+    from tradingbot.core.futures_broker import FuturesPosition
+
+    positions = session.execute(select(PositionRow).where(PositionRow.account == account)).scalars().all()
+    for p in positions:
+        _, side, leverage = p.tag.split(":")
+        margin = p.size * p.entry_price / int(leverage)
+        broker.positions[p.symbol] = FuturesPosition(
+            p.lot_id, p.symbol, side, int(leverage), p.entry_price, p.size, p.entry_time, margin
+        )
+
+    broker._db_persisted_trade_count = session.execute(
+        select(func.count()).select_from(TradeRow).where(TradeRow.account == account)
+    ).scalar_one()
+
+
 def load_broker(session: Session, account: str, initial_cash: float, fee_pct: float, slippage_pct: float) -> PaperBroker:
     row = session.get(CashBalanceRow, account)
     if row is None:
