@@ -4,8 +4,8 @@ import { CoinCard } from "@/components/CoinCard"
 import { FlashValue } from "@/components/FlashValue"
 import { OverviewCard } from "@/components/OverviewCard"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { fetchAccounts, fetchStatus, fetchWalletBalance } from "@/lib/api"
 import { formatUsdt } from "@/lib/format"
 import { usePolling } from "@/lib/usePolling"
@@ -43,15 +43,20 @@ export function App() {
             )}
 
             {accounts && accounts.length > 1 && (
-              <Tabs value={account} onValueChange={(value) => setAccount(value as string)}>
-                <TabsList>
-                  {accounts.map((a) => (
-                    <TabsTrigger key={a.id} value={a.id}>
-                      {a.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+              <Select value={account} onValueChange={(value) => value && setAccount(value)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             )}
           </div>
         </header>
