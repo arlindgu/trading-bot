@@ -1,31 +1,60 @@
+x-bot-base: &bot-base
+  build: .
+  env_file: .env
+  volumes:
+    - ./paper_state:/app/paper_state
+  restart: unless-stopped
+
 services:
-  bot-testnet-500:
-    build: .
+  bot-500:
+    <<: *bot-base
     command: >
       python -u cli/portfolio_paper_trade.py
-      --testnet --account alts8_testnet_500 --key-prefix BINANCE_TESTNET_API_500
+      --testnet --account alts8_testnet_500
       --total-cash 500 --risk-pct 0.03 --poll-seconds 300
       config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
       config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
-    env_file: .env
-    volumes:
-      - ./paper_state:/app/paper_state
-    restart: unless-stopped
 
-  bot-testnet-10k:
-    build: .
+  bot-1000:
+    <<: *bot-base
     command: >
       python -u cli/portfolio_paper_trade.py
-      --testnet --account alts8_testnet_10k --key-prefix BINANCE_TESTNET_API_10K
-      --total-cash 10000 --risk-pct 0.01 --poll-seconds 300
+      --testnet --account alts8_testnet_1000
+      --total-cash 1000 --risk-pct 0.02 --poll-seconds 300
       config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
       config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
-    env_file: .env
-    volumes:
-      - ./paper_state:/app/paper_state
-    restart: unless-stopped
+
+  bot-2000:
+    <<: *bot-base
+    command: >
+      python -u cli/portfolio_paper_trade.py
+      --testnet --account alts8_testnet_2000
+      --total-cash 2000 --risk-pct 0.015 --poll-seconds 300
+      config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
+      config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
+      config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
+
+  bot-4000:
+    <<: *bot-base
+    command: >
+      python -u cli/portfolio_paper_trade.py
+      --testnet --account alts8_testnet_4000
+      --total-cash 4000 --risk-pct 0.01 --poll-seconds 300
+      config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
+      config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
+      config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
+
+  bot-8000:
+    <<: *bot-base
+    command: >
+      python -u cli/portfolio_paper_trade.py
+      --testnet --account alts8_testnet_8000
+      --total-cash 8000 --risk-pct 0.01 --poll-seconds 300
+      config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
+      config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
+      config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
 
   webapp:
     build: .
@@ -36,5 +65,8 @@ services:
       - ./paper_state:/app/paper_state
     restart: unless-stopped
     depends_on:
-      - bot-testnet-500
-      - bot-testnet-10k
+      - bot-500
+      - bot-1000
+      - bot-2000
+      - bot-4000
+      - bot-8000
