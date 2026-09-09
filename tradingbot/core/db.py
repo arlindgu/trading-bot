@@ -200,6 +200,16 @@ def get_trades_for_symbol(session: Session, account: str, symbol: str) -> list[d
     ]
 
 
+def get_open_positions_for_symbol(session: Session, account: str, symbol: str) -> list[dict]:
+    rows = session.execute(
+        select(PositionRow).where(PositionRow.account == account, PositionRow.symbol == symbol)
+    ).scalars().all()
+    return [
+        {"lot_id": r.lot_id, "size": r.size, "entry_price": r.entry_price, "entry_time": r.entry_time, "tag": r.tag}
+        for r in rows
+    ]
+
+
 def get_symbols(session: Session, account: str) -> list[str]:
     rows = session.execute(
         select(TradeRow.symbol).where(TradeRow.account == account).distinct()

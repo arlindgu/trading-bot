@@ -17,10 +17,31 @@ from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, request, send_from_directory
 from sqlalchemy.orm import scoped_session
 
-from tradingbot.config import STATE_DIR
+from tradingbot.config import ROOT, STATE_DIR, load_yaml
 from tradingbot.core import db
+from tradingbot.strategies.grid import GridStrategy
 
 load_dotenv()
+
+
+def _grid_levels(symbol: str) -> list[float]:
+    """Rebuild a symbol's grid price ladder from its config yaml -- the
+    same levels GridStrategy computed when it opened each position, used to
+    show each open position's sell target in the dashboard (the target
+    itself isn't stored in the DB, only the slot index via the trade tag)."""
+    slug = symbol.split("/")[0].lower()
+    raw = load_yaml(ROOT / "config" / f"grid_{slug}_usdt.yaml")
+    return GridStrategy._build_levels(raw["lower_price"], raw["upper_price"], raw["num_grids"], raw.get("geometric", False))
+
+
+def _target_price(tag: str, levels: list[float]) -> float | None:
+    if not tag or not tag.startswith("grid:"):
+        return None
+    try:
+        index = int(tag.split(":", 1)[1])
+    except ValueError:
+        return None
+    return levels[index + 1] if 0 <= index + 1 < len(levels) else None
 
 # Every account this dashboard can display, and how much starting capital
 # to compute Total PnL % against. Add an entry here for any new parallel
@@ -151,6 +172,19 @@ def symbol_history(symbol: str):
 def symbol_trades(symbol: str):
     session = Session()
     return jsonify(db.get_trades_for_symbol(session, _account(), symbol))
+
+
+@app.route("/api/symbols/<path:symbol>/positions")
+def symbol_positions(symbol: str):
+    session = Session()
+    positions = db.get_open_positions_for_symbol(session, _account(), symbol)
+    try:
+        levels = _grid_levels(symbol)
+    except FileNotFoundError:
+        levels = []
+    for p in positions:
+        p["target_price"] = _target_price(p["tag"], levels) if levels else None
+    return jsonify(positions)
 
 
 @app.route("/", defaults={"path": ""})

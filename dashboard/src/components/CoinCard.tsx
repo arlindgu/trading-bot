@@ -8,7 +8,7 @@ import { FlashValue } from "@/components/FlashValue"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { fetchSymbolHistory, fetchSymbolTrades, type SymbolSummary } from "@/lib/api"
+import { fetchSymbolHistory, fetchSymbolPositions, fetchSymbolTrades, type SymbolSummary } from "@/lib/api"
 import { formatUsdt, pnlColorClass } from "@/lib/format"
 import { usePolling } from "@/lib/usePolling"
 
@@ -32,11 +32,21 @@ export function CoinCard({
 }) {
   const { data: history } = usePolling(() => fetchSymbolHistory(account, symbol), pollMs, account)
   const { data: trades } = usePolling(() => fetchSymbolTrades(account, symbol), pollMs, account)
+  const { data: positions } = usePolling(() => fetchSymbolPositions(account, symbol), pollMs, account)
 
   const chartData = useMemo(
     () => (history ?? []).map((point) => ({ timestamp: point.timestamp, total_pnl: point.total_pnl })),
     [history]
   )
+
+  const sortedPositions = useMemo(() => {
+    const mark = summary.mark_price
+    return [...(positions ?? [])].sort((a, b) => {
+      const distA = a.target_price != null && mark != null ? a.target_price - mark : Infinity
+      const distB = b.target_price != null && mark != null ? b.target_price - mark : Infinity
+      return distA - distB
+    })
+  }, [positions, summary.mark_price])
 
   return (
     <Card>
@@ -99,6 +109,55 @@ export function CoinCard({
             Not enough data for a chart yet
           </div>
         )}
+
+        <Separator />
+
+        <div>
+          <div className="mb-2 text-sm font-medium">Open Positions ({sortedPositions.length})</div>
+          <ScrollArea className="h-40">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Entry</TableHead>
+                  <TableHead className="text-right">Size</TableHead>
+                  <TableHead className="text-right">Target</TableHead>
+                  <TableHead className="text-right">To go</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedPositions.map((position) => {
+                  const toGoPct =
+                    position.target_price != null && summary.mark_price != null
+                      ? ((position.target_price - summary.mark_price) / summary.mark_price) * 100
+                      : null
+                  return (
+                    <TableRow key={position.lot_id}>
+                      <TableCell className="font-mono text-xs tabular-nums">
+                        {formatUsdt(position.entry_price, { decimals: 4 })}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums">
+                        {position.size.toFixed(4)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums">
+                        {position.target_price != null ? formatUsdt(position.target_price, { decimals: 4 }) : "–"}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground">
+                        {toGoPct != null ? `+${toGoPct.toFixed(2)}%` : "–"}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+                {sortedPositions.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                      No open positions
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </div>
 
         <Separator />
 

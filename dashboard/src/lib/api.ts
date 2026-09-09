@@ -37,6 +37,15 @@ export interface Trade {
   pnl: number | null
 }
 
+export interface OpenPosition {
+  lot_id: string
+  size: number
+  entry_price: number
+  entry_time: string
+  tag: string
+  target_price: number | null
+}
+
 export interface Account {
   id: string
   label: string
@@ -72,4 +81,8 @@ export function fetchSymbolHistory(account: string, symbol: string): Promise<Sym
 
 export function fetchSymbolTrades(account: string, symbol: string): Promise<Trade[]> {
   return getJson(`/api/symbols/${symbol}/trades?account=${encodeURIComponent(account)}`)
+}
+
+export function fetchSymbolPositions(account: string, symbol: string): Promise<OpenPosition[]> {
+  return getJson(`/api/symbols/${symbol}/positions?account=${encodeURIComponent(account)}`)
 }
