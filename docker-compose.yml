@@ -1,10 +1,10 @@
 services:
-  bot-testnet:
+  bot-testnet-500:
     build: .
     command: >
       python -u cli/portfolio_paper_trade.py
-      --testnet --account alts8_testnet
-      --total-cash 10000 --risk-pct 0.01 --poll-seconds 300
+      --testnet --account alts8_testnet_500
+      --total-cash 500 --risk-pct 0.03 --poll-seconds 300
       config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
       config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
@@ -13,15 +13,16 @@ services:
       - ./paper_state:/app/paper_state
     restart: unless-stopped
 
-  bot-paper10k:
+  bot-testnet-10k:
     build: .
     command: >
       python -u cli/portfolio_paper_trade.py
-      --account alts8_paper10k
-      --total-cash 10000 --poll-seconds 300
+      --testnet --account alts8_testnet_10k
+      --total-cash 10000 --risk-pct 0.01 --poll-seconds 300
       config/grid_link_usdt.yaml config/grid_tia_usdt.yaml config/grid_dot_usdt.yaml
       config/grid_eth_usdt.yaml config/grid_wif_usdt.yaml config/grid_avax_usdt.yaml
       config/grid_sol_usdt.yaml config/grid_arb_usdt.yaml
+    env_file: .env
     volumes:
       - ./paper_state:/app/paper_state
     restart: unless-stopped
@@ -35,5 +36,5 @@ services:
       - ./paper_state:/app/paper_state
     restart: unless-stopped
     depends_on:
-      - bot-testnet
-      - bot-paper10k
+      - bot-testnet-500
+      - bot-testnet-10k

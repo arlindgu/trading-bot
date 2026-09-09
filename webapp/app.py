@@ -20,10 +20,10 @@ from tradingbot.core import db
 # to compute Total PnL % against. Add an entry here for any new parallel
 # bot account (paper or testnet) that should be selectable in the UI.
 ACCOUNTS = {
-    "alts8_testnet": {"label": "Testnet (10,000 USDT)", "starting_cash": 10000.0},
-    "alts8_paper10k": {"label": "Paper (10,000 USDT)", "starting_cash": 10000.0},
+    "alts8_testnet_500": {"label": "Testnet (500 USDT)", "starting_cash": 500.0},
+    "alts8_testnet_10k": {"label": "Testnet (10,000 USDT)", "starting_cash": 10000.0},
 }
-DEFAULT_ACCOUNT = "alts8_testnet"
+DEFAULT_ACCOUNT = "alts8_testnet_500"
 
 DB_PATH = STATE_DIR / "trading.db"
 DIST_DIR = Path(__file__).resolve().parent.parent / "dashboard" / "dist"

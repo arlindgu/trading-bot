@@ -8,7 +8,7 @@ import { fetchAccounts, fetchStatus } from "@/lib/api"
 import { usePolling } from "@/lib/usePolling"
 
 const POLL_MS = 30_000
-const FALLBACK_ACCOUNT = "alts8_testnet"
+const FALLBACK_ACCOUNT = "alts8_testnet_500"
 
 export function App() {
   const { data: accounts } = usePolling(fetchAccounts, 60_000)
