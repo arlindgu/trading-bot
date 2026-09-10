@@ -41,10 +41,10 @@ tradingbot/
     indicators.py  # EMA/RSI/MACD/ATR/Donchian/BollingerBands -- small streaming indicators
     grid.py         # GridStrategy + GridConfig (its own multi-lot/slot shape)
     coinflip.py     # CoinflipStrategy (futures, its own multi-lot shape + per-lot TP/SL)
-    ma_crossover.py, donchian_breakout.py, rsi_reversion.py, bollinger_reversion.py,
-    macd_momentum.py, atr_breakout.py, volume_spike.py, relative_momentum.py, buy_and_hold.py,
-    moon_phase.py, friday13.py, prime_number.py, contrarian_self.py, fomo_bot.py,
-    diamond_hands.py, buy_high_sell_low.py, zodiac.py, hash_sentiment.py
+    ma_crossover.py, rsi_reversion.py, buy_and_hold.py,
+    micro_donchian.py, bollinger_pinch.py, macd_pulse.py, atr_flicker.py, volume_pulse.py, tick_momentum.py,
+    friday13.py, contrarian_self.py, diamond_hands.py, hash_sentiment.py, zappelphilipp.py,
+    pendel_bot.py, herzschlag_bot.py, wackelkontakt_bot.py, sekundenschlaf_bot.py, trommelwirbel_bot.py
     __init__.py  # STRATEGIES registry: {"grid": (GridConfig, GridStrategy), ...}
 cli/
   fetch_data.py          # cache OHLCV history for a config's symbol
@@ -232,8 +232,8 @@ port 8080 is on you.
 
 ## Real strategies (14, including Grid)
 
-All spot side of the demo account except the 4 high-frequency ones (see
-below), built on `SingleLotStrategy` (except Grid, which has its own
+All spot side of the demo account except the 4 futures high-frequency ones
+(see below), built on `SingleLotStrategy` (except Grid, which has its own
 slot-indexed shape). Each can hold several concurrent lots on a symbol
 (accumulated across separate candles while its signal stays true, closed
 together once it flips) instead of being capped at one trade for its
@@ -243,14 +243,25 @@ whole lifetime.
 |---|---|
 | Grid | Buy/sell a fixed price ladder, profits from oscillation |
 | MA Crossover | Long while EMA9 > EMA21 |
-| Donchian Breakout | Long on a close above the prior N-bar high |
 | RSI Reversion | Long when RSI < 30, exit above 60 |
-| Bollinger Reversion | Buy the lower band, exit at the middle |
-| MACD Momentum | Long on a bullish MACD/signal crossover |
-| ATR Breakout | Volatility breakout entry, ATR trailing stop |
-| Volume Spike | Long on a volume thrust with a green candle |
-| Relative Momentum | Long when N-bar return is positive and accelerating |
 | Buy & Hold | Buys once (well, up to `max_concurrent`), never sells -- the benchmark |
+
+**High-frequency (spot, 1-minute bars)**: 6 strategies that replaced 6 1h
+strategies (Donchian Breakout, Bollinger Reversion, MACD Momentum, ATR
+Breakout, Volume Spike, Relative Momentum) whose entry conditions were rare
+enough on 1h candles that they went long stretches without a single trade.
+Same indicators, same `SingleLotStrategy` base, just much tighter periods
+on 1m bars so they actually fire -- and a smaller `position_pct` per trade
+since turnover replaces size.
+
+| Strategy | Idea |
+|---|---|
+| Micro-Donchian | Donchian breakout on a 5-bar channel instead of 20 |
+| Bollinger-Pinch | Bollinger reversion on a tight 10-bar/1-std band instead of 20/2 |
+| MACD-Pulse | MACD crossover on 3/8/3 periods instead of 12/26/9 |
+| ATR-Flicker | Enters/exits on single-candle volatility bursts vs. a trailing ATR stop |
+| Volume-Pulse | Volume thrust on a 10-bar average instead of 20 |
+| Tick-Momentum | Sign of the last 2-bar return instead of a 10-bar one |
 
 **High-frequency (futures, 1-minute bars)**: these 4 run on
 `tradingbot/strategies/futures_single_lot.py`'s `FuturesSingleLotStrategy`
@@ -283,22 +294,32 @@ which a spot ledger can't represent -- so this is the one strategy on
 | Strategy | Idea |
 |---|---|
 | Coinflip | Random side/leverage/TP-SL, real leverage, for laughs |
-| Vollmond-Trader | Long during a full moon (computed from the date), flat otherwise |
 | Freitag-13-Trader | Closes out on Friday the 13th, holds otherwise |
-| Primzahl-Trader | Only holds on a prime day-of-month |
 | Contrarian-Self | Holds a fixed number of bars, then skips its next entry after a loss |
-| FOMO-Bot | Only buys after a pump, sells when momentum stalls |
 | Diamond-Hands | Buys every dip, literally never sells |
-| Buy-High-Sell-Low | Chases new highs, panic-sells on the next red candle |
-| Sternzeichen-Trader | Long/flat by a fixed table keyed on the zodiac sign |
 | Hash-Sentiment-Bot | Pretends to read sentiment, actually hashes the bar's own OHLCV |
+
+**High-frequency (spot, 1-minute bars)**: Zappelphilipp plus 5 strategies
+that replaced 5 date-gated jokes (Vollmond-Trader, Primzahl-Trader,
+FOMO-Bot, Buy-High-Sell-Low, Sternzeichen-Trader) whose "is today special"
+gimmicks meant long stretches with no trade. These trade on a
+deterministic or twitchy per-candle gimmick instead, so they fire on
+nearly every 1m bar.
+
+| Strategy | Idea |
+|---|---|
+| Zappelphilipp | Closes every 1-minute candle, coinflips whether to reopen |
+| Pendel-Bot | Long on even candles, flat on odd ones -- a deterministic metronome |
+| Herzschlag-Bot | Buys, holds exactly 1 candle, sells, rebuys -- a heartbeat |
+| Wackelkontakt-Bot | Hashes the candle into a coin every bar, jumps to whatever it says |
+| Sekundenschlaf-Bot | Opens, naps 1-3 candles, wakes, closes, rolls a fresh nap |
+| Trommelwirbel-Bot | Builds a position over 3 candles, dumps it all on the 4th |
 
 **High-frequency (futures, 1-minute bars)**, same `FuturesSingleLotStrategy`
 base as the real scalps above:
 
 | Strategy | Idea |
 |---|---|
-| Zappelphilipp | Closes every 1-minute candle, coinflips whether to reopen |
 | Adrenaline-Junkie | Flips side every single candle at a random leverage, never sits still |
 | Panic-Bot | Random direction, panics and flips on the smallest adverse tick |
 

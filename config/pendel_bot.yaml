@@ -1,0 +1,6 @@
+strategy: pendel_bot
+exchange: binance
+timeframe: 1m
+fee_pct: 0.001
+slippage_pct: 0.0005
+position_pct: [0.02, 0.05]

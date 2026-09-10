@@ -20,25 +20,33 @@ accounts:
     risk_pct: [0.02, 0.045]
 
   # 9 real (technical) strategies -- USDT side, 500 each (4,500 total, +
-  # grid's 500 = 5,000 of 5,000).
+  # grid's 500 = 5,000 of 5,000). 6 of these are 1m high-frequency scalps
+  # that replaced 6 1h strategies which barely ever traded (donchian
+  # breakout, bollinger reversion, macd momentum, atr breakout, volume
+  # spike, relative momentum) -- same indicators, much tighter periods on
+  # 1m bars, smaller position_pct per trade so turnover replaces size.
   - {account: ma_crossover_500, config: config/ma_crossover.yaml, total_cash: 500}
-  - {account: donchian_breakout_500, config: config/donchian_breakout.yaml, total_cash: 500}
   - {account: rsi_reversion_500, config: config/rsi_reversion.yaml, total_cash: 500}
-  - {account: bollinger_reversion_500, config: config/bollinger_reversion.yaml, total_cash: 500}
-  - {account: macd_momentum_500, config: config/macd_momentum.yaml, total_cash: 500}
-  - {account: atr_breakout_500, config: config/atr_breakout.yaml, total_cash: 500}
-  - {account: volume_spike_500, config: config/volume_spike.yaml, total_cash: 500}
-  - {account: relative_momentum_500, config: config/relative_momentum.yaml, total_cash: 500}
   - {account: buy_and_hold_500, config: config/buy_and_hold.yaml, total_cash: 500}
+  - {account: micro_donchian_500, config: config/micro_donchian.yaml, total_cash: 500}
+  - {account: bollinger_pinch_500, config: config/bollinger_pinch.yaml, total_cash: 500}
+  - {account: macd_pulse_500, config: config/macd_pulse.yaml, total_cash: 500}
+  - {account: atr_flicker_500, config: config/atr_flicker.yaml, total_cash: 500}
+  - {account: volume_pulse_500, config: config/volume_pulse.yaml, total_cash: 500}
+  - {account: tick_momentum_500, config: config/tick_momentum.yaml, total_cash: 500}
 
-  # 10 joke strategies -- USDC side, 500 each (5,000 of 5,000).
-  - {account: moon_phase_500, config: config/moon_phase.yaml, total_cash: 500, quote_currency: USDC}
+  # 10 joke strategies -- USDC side, 500 each (5,000 of 5,000). 5 of these
+  # are 1m high-frequency joke bots that replaced 5 date-gated jokes which
+  # barely ever traded (vollmond, primzahl, fomo, buy-high-sell-low,
+  # sternzeichen) -- deterministic/twitchy triggers instead of "is today a
+  # special day", so they fire on nearly every candle.
   - {account: friday13_500, config: config/friday13.yaml, total_cash: 500, quote_currency: USDC}
-  - {account: prime_number_500, config: config/prime_number.yaml, total_cash: 500, quote_currency: USDC}
   - {account: contrarian_self_500, config: config/contrarian_self.yaml, total_cash: 500, quote_currency: USDC}
-  - {account: fomo_bot_500, config: config/fomo_bot.yaml, total_cash: 500, quote_currency: USDC}
   - {account: diamond_hands_500, config: config/diamond_hands.yaml, total_cash: 500, quote_currency: USDC}
-  - {account: buy_high_sell_low_500, config: config/buy_high_sell_low.yaml, total_cash: 500, quote_currency: USDC}
-  - {account: zodiac_500, config: config/zodiac.yaml, total_cash: 500, quote_currency: USDC}
   - {account: hash_sentiment_500, config: config/hash_sentiment.yaml, total_cash: 500, quote_currency: USDC}
   - {account: zappelphilipp_500, config: config/zappelphilipp.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: pendel_bot_500, config: config/pendel_bot.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: herzschlag_bot_500, config: config/herzschlag_bot.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: wackelkontakt_bot_500, config: config/wackelkontakt_bot.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: sekundenschlaf_bot_500, config: config/sekundenschlaf_bot.yaml, total_cash: 500, quote_currency: USDC}
+  - {account: trommelwirbel_bot_500, config: config/trommelwirbel_bot.yaml, total_cash: 500, quote_currency: USDC}

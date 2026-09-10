@@ -1,0 +1,7 @@
+strategy: micro_donchian
+exchange: binance
+timeframe: 1m
+fee_pct: 0.001
+slippage_pct: 0.0005
+period: 5
+position_pct: [0.03, 0.06]
